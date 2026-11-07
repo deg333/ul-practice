@@ -97,6 +97,7 @@ body.calc-open #calc{transform:none}
 .tbl td.pinx,.tbl th.pinx,.dbody td.pinx,.dbody th.pinx{background:var(--warn)!important;color:#111!important;font-weight:700}
 #toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,20px);background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:99px;font-weight:600;font-size:.92rem;opacity:0;pointer-events:none;transition:opacity .15s,transform .15s;z-index:60;box-shadow:0 4px 14px rgba(0,0,0,.3)}
 #toast.on{opacity:1;transform:translate(-50%,0)}
+#calc{overflow-y:auto}.chist{flex:1 0 150px}.chelp,.cvars,.cinwrap,.cchips,.cfoot,.chead{flex:0 0 auto}.chelp{max-height:260px}body.calc-open{padding-left:40px}
 </style>
 </head>
 <body>
@@ -122,6 +123,23 @@ body.calc-open #calc{transform:none}
   <p class="note" style="margin:4px 0"><b>Functions:</b> sqrt, abs, round(x,d), ceil, floor, min, max, pow, ln, log, exp; sin cos tan asin acos atan (degrees).</p>
   <p class="note" style="margin:4px 0"><b>Exam helpers:</b> <code class="plain">up(x)</code> / <code class="plain">down(x)</code> next standard OCPD size above / not above x; <code class="plain">upcb</code>, <code class="plain">downcb</code> (breakers, ≥ 15 A); <code class="plain">i3(kVA,V)</code>, <code class="plain">i1(kVA,V)</code> rated current; <code class="plain">isc3(kVA,V,Z%)</code>, <code class="plain">isc1</code>; <code class="plain">flc3(hp,V)</code>, <code class="plain">flc1(hp,V)</code> motor table FLC; <code class="plain">kw(hp)</code>, <code class="plain">hp(kW)</code>; <code class="plain">wire(amps)</code> copper size (Table 28.1).</p>
   <p class="note" style="margin:4px 0">↑ / ↓ recall earlier entries; click a result to insert it; click a variable to insert its name.</p></details>
+
+ <details class="chelp"><summary>Power formulas (click to insert)</summary>
+  <p class="note" style="margin:6px 0 4px"><b>DC circuits</b></p>
+  <div class="cex" data-chip="dc_vi()">P = V × I &nbsp; <code class="plain">dc_vi(v, i)</code></div>
+  <div class="cex" data-chip="dc_ir()">P = I² × R &nbsp; <code class="plain">dc_ir(i, r)</code></div>
+  <div class="cex" data-chip="dc_vr()">P = V² ÷ R &nbsp; <code class="plain">dc_vr(v, r)</code></div>
+  <p class="note" style="margin:8px 0 4px"><b>AC single phase</b> (pf = cos θ)</p>
+  <div class="cex" data-chip="ac1_vi()">P = V × I × cos θ &nbsp; <code class="plain">ac1_vi(v, i, pf)</code></div>
+  <div class="cex" data-chip="ac1_ir()">P = I² × R × cos θ &nbsp; <code class="plain">ac1_ir(i, r, pf)</code></div>
+  <div class="cex" data-chip="ac1_vr()">P = V² ÷ R × cos θ &nbsp; <code class="plain">ac1_vr(v, r, pf)</code></div>
+  <p class="note" style="margin:8px 0 4px"><b>AC 3-phase</b></p>
+  <div class="cex" data-chip="ac3_l()">P = √3 × V<sub>L</sub> × I<sub>L</sub> × cos θ &nbsp; <code class="plain">ac3_l(vl, il, pf)</code></div>
+  <div class="cex" data-chip="ac3_p()">P = 3 × V<sub>P</sub> × I<sub>P</sub> × cos θ &nbsp; <code class="plain">ac3_p(vp, ip, pf)</code></div>
+  <div class="cex" data-chip="ac3_ir()">P = 3 × I² × R × cos θ &nbsp; <code class="plain">ac3_ir(i, r, pf)</code></div>
+  <div class="cex" data-chip="ac3_vr()">P = 3 × (V² ÷ R) × cos θ &nbsp; <code class="plain">ac3_vr(v, r, pf)</code></div>
+  <p class="note" style="margin:8px 0 4px">Results are in watts. Power factor is cos θ: give it directly (<code class="plain">0.8</code>) or as <code class="plain">cos(36.87)</code> (degrees). Formulas are as printed in the source table; for a purely resistive load use pf = 1.</p>
+  <div class="cex" data-ex="ac3_l(480,30,0.8); ans/1000">3-phase: 480 V, 30 A, pf 0.8 → W, then kW</div></details>
  <div class="cfoot"><button class="btn sm" id="cclr">Clear history</button><button class="btn sm" id="cclrv">Clear variables</button></div>
 </aside>
 <div id="drawers"></div>
@@ -1763,7 +1781,11 @@ const CFN={
  kw:hp=>hp*0.746,hp:kw=>kw/0.746,
  flc3:(hp,v)=>{const k=cvolt(v,FLC3);const r=k&&FLC3[k]&&FLC3[k][hp];if(r==null)throw new Error('no 3-phase table value for '+hp+' hp at '+v+' V (voltages 208, 230/240, 460/480, 575/600)');return r},
  flc1:(hp,v)=>{const k=cvolt(v,FLC1);const r=k&&FLC1[k]&&FLC1[k][hp];if(r==null)throw new Error('no single-phase table value for '+hp+' hp at '+v+' V (voltages 115/120, 230/240)');return r},
- wire:a=>wireLab(wireFor(a,a>100))+' Cu ('+(a>100?'75':'60')+' °C, Table 28.1)'
+ wire:a=>wireLab(wireFor(a,a>100))+' Cu ('+(a>100?'75':'60')+' °C, Table 28.1)',
+ // power formulas (table: power in DC, single-phase AC and 3-phase AC circuits); pf = cos θ
+ dc_vi:(v,i)=>v*i, dc_ir:(i,r)=>i*i*r, dc_vr:(v,r)=>v*v/r,
+ ac1_vi:(v,i,pf)=>v*i*pf, ac1_ir:(i,r,pf)=>i*i*r*pf, ac1_vr:(v,r,pf)=>v*v/r*pf,
+ ac3_l:(vl,il,pf)=>Math.sqrt(3)*vl*il*pf, ac3_p:(vp,ip,pf)=>3*vp*ip*pf, ac3_ir:(i,r,pf)=>3*i*i*r*pf, ac3_vr:(v,r,pf)=>3*(v*v/r)*pf
 };
 function calcTok(src){
  const T=[];let i=0,m;
