@@ -3,6 +3,7 @@
 Open **`ul508a-mtr-study.html`** in a browser (works offline, no build step). Keep the `vendor/katex/` folder next to it: it holds [KaTeX](https://katex.org) (MIT, v0.16.11) used to typeset the math. Without it the page still works and shows the formulas as plain text.
 
 - **Exam Parts** – questions organised like the exam: Part 1 General UL 508A Information, Part 2 Enclosed Panels and Power Circuits, Part 3 Control Circuits / Ratings / Markings / Enclosures, Part 4 SCCR – each with study notes, practice and a quiz
+- **FLC vs nameplate, Table 28.1 and Table 38.1** – the NEC 430.6(A) rule as a graphic with a worked 40 hp nameplate example, UL 508A conductor ampacities (copper and aluminum) and control-circuit conductor sizes, with practice questions
 - **Supplement SB tables** – SB4.1 (default SCCR), SB4.2 (fuse let-through, both pages), SB4.3 / SB4.4 (transformer secondary short-circuit current) on the Reference tab, a *Let-through lookup* simulator, and practice questions
 - **SCCR worksheets** – the seven panel/branch worksheets redrawn as SVG schematics with multiple-choice answers and full branch-by-branch evaluation, plus notes on the current-limiting-device / transformer evaluation method (Tables SB4.2 / SB4.3)
 - **Three dedicated practice sections** – *Power Transformers*, *Control Transformers* and *SCCR* – each with a step-by-step lesson, then practice questions with hidden answers and full math (plus a quiz-this-section button)

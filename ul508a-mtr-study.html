@@ -97,11 +97,12 @@ const FLC1={
 const STD=[1,3,6,10,15,20,25,30,35,40,45,50,60,70,80,90,100,110,125,150,175,200,225,250,300,350,400,450,500,600,700,800,1000,1200];
 const CTRL=[0.5,0.6,0.8,1,1.25,1.5,1.6,2,2.5,3,3.5,4,5,6,7,8,10,12,13,15,17.5,20,25,30,35,40,45,50,60,70,80,90,100,110,125,150,175,200,225,250,300,350,400,450,500,600,700,800,1000,1200];
 const STDCB=STD.filter(x=>x>=15);
-const W60=[['14',15],['12',20],['10',30],['8',40],['6',55],['4',70],['3',85],['2',95],['1',110],['1/0',125],['2/0',145],['3/0',165],['4/0',195]];
-const W75=[['14',20],['12',25],['10',35],['8',50],['6',65],['4',85],['3',100],['2',115],['1',130],['1/0',150],['2/0',175],['3/0',200],['4/0',230]];
+const W60=[['14',15],['12',20],['10',30],['8',40],['6',55],['4',70],['3',85],['2',95],['1',110]];
+const W75=[['14',15],['12',20],['10',30],['8',50],['6',65],['4',85],['3',100],['2',115],['1',130],['1/0',150],['2/0',175],['3/0',200],['4/0',230],['250 kcmil',255],['300 kcmil',285],['350 kcmil',310],['400 kcmil',335],['500 kcmil',380]];
+const wireLab=w=>/kcmil|larger/.test(w)?w:w+' AWG';
 const nextUp=(x,list=STD)=>list.find(v=>v>=x-1e-9)||null;
 const nextDown=(x,list=STD)=>[...list].reverse().find(v=>v<=x+1e-9)||null;
-const wireFor=(amps,isHigh)=>{const t=(isHigh?W75:W60).find(w=>w[1]>=amps-1e-9);return t?t[0]:'larger than 4/0'};
+const wireFor=(amps,isHigh)=>{const t=(isHigh?W75:W60).find(w=>w[1]>=amps-1e-9);return t?t[0]:'larger than 500 kcmil'};
 
 /* ============================== questions ============================== */
 const TOPICS={scope:'Scope & Marking',motor:'Motor Circuits',sccr:'SCCR & Fault Current',xfmr:'Transformers (Power & Control)',upsize:'Sizing Up & Feeders',xcur:'Transformer Current (Single- & 3-Phase)',wire:'Conductors & Grounding',math:'Electrical Math',ctrl:'Controls & Protection'};
@@ -763,6 +764,34 @@ const Q=[
 {id:'sb-12',t:'sccr',d:3,src:SRC_S,q:'Describe the <b>“Two Sweep” method</b> of determining assembly SCCR (UL 508A Supplement SB as explained in the supplied Bussmann guide).',
  a:'<b>Sweep 1 – Component protection sweep</b> (5 steps): (1) lowest component SCCR for each branch circuit (marked, default Table SB4.1, or tested combination); (2) the same for each feeder circuit; (3) modify transformer circuit SCCR if applicable (small power transformers); (4) modify branch component SCCRs if a current-limiting device is in the feeder (peak let-through from Table SB4.2 or the breaker curve); (5) the lowest branch/feeder SCCR = Sweep 1 SCCR.<br><b>Sweep 2 – Overcurrent protection sweep</b> (3 steps): (1) interrupting rating (or SCCR) of every overcurrent device in branch, feeder and supply circuits and those protecting control circuits; (2) the lowest of them; (3) compare with Sweep 1 – <b>the lowest rating encountered is the assembly SCCR</b>.',
  why:'Purpose of two sweeps: the interrupting rating of an overcurrent device must never be raised by an upstream device – <b>series rating is prohibited</b>. Only power-circuit devices and overcurrent devices protecting control circuits affect SCCR. If the result is too low, use the “FIX IT” methods (higher-rated parts, combinations, current-limiting devices).'},
+/* ---------- FLC vs NAMEPLATE, TABLE 28.1, TABLE 38.1 ---------- */
+{id:'fl-1',t:'motor',d:3,qfig:'fl1',num:{v:58.75,tol:0.01,u:'A (overload max)'},sim:'motor',q:'A <b>40 hp, 230/460 V, 3-phase</b> motor is connected at <b>460 V</b>. The nameplate reads <b>94/47 A</b>, service factor <b>1.15</b>. Using the NEC table (40 hp, 460 V = 52 A): (a) what is the minimum branch-circuit conductor (60 °C column, UL 508A Table 28.1)? (b) the maximum inverse-time breaker and dual-element fuse? (c) the maximum overload relay setting?',
+ a:'(a) 52 × 1.25 = 65 A → <b>4 AWG</b> copper (70 A at 60 °C). (b) Breaker 52 × 250 % = 130 A → <b>150 A</b>; dual-element fuse 52 × 175 % = 91 A → <b>100 A</b>. (c) Overload: nameplate 47 A × 125 % = <b>58.75 A</b>.',
+ steps:['<b>Table FLC</b> (not the nameplate): <code>52 A</code> at 460 V.','(a) Conductors: <code>52 × 1.25 = 65 A</code>. Circuit ≤ 100 A → 60 °C column: 6 AWG = 55 A ✘, <b>4 AWG = 70 A</b> ✔.','(b) Inverse-time breaker: <code>52 × 2.50 = 130 A</code> → not standard; next higher <code>150 A</code>. Dual-element fuse: <code>52 × 1.75 = 91 A</code> → next higher <code>100 A</code>.','(c) Overload uses the <b>nameplate</b> current at the connected voltage (47 A) with S.F. 1.15 → 125 %: <code>47 × 1.25 = 58.75 A</code> (up to 140 % = 65.8 A if it trips on starting).'],
+ why:'One motor, two currents: table FLC 52 A for the conductors, disconnect and short-circuit/ground-fault devices; nameplate 47 A for the overload. Do not use the 94 A figure – that is the 230 V connection.'},
+{id:'fl-2',t:'motor',d:2,qfig:'flcnp',q:'NEC 430.6(A): which current – the <b>table full-load current (FLC)</b> or the <b>nameplate FLA</b> – is used for (a) conductors (b) disconnecting means (c) short-circuit and ground-fault protection devices (d) overload protection?',
+ a:'<b>Table FLC</b> (430.6(A)(1)) → (a) conductors, (b) disconnects, (c) short-circuit and ground-fault protection devices.<br><b>Nameplate FLA</b> (430.6(A)(2)) → (d) overload protection.',
+ why:'The table makes branch-circuit sizing independent of the particular motor installed. Because the table FLC is usually higher than the real nameplate current, conductors and branch devices are conservative, while the overload relay is matched to the actual motor.'},
+{id:'fl-3',t:'motor',d:3,num:{v:23.2,tol:0.01,u:'A'},q:'A <b>5 hp single-phase</b> motor is rated <b>277 V</b>. The 230 V single-phase table value is 28 A. How do you obtain the full-load current for a 277 V motor (and for a 265 V motor)?',
+ a:'Decrease the corresponding 220–240 V table value by <b>17 %</b> for 277 V motors and by <b>13 %</b> for 265 V motors: 277 V → <b>23.2 A</b>; 265 V → <b>24.4 A</b>.',
+ steps:['230 V table value: <code>28 A</code>.','277 V motor: <code>28 × (1 − 0.17) = 28 × 0.83 = 23.24 A</code>.','265 V motor: <code>28 × (1 − 0.13) = 28 × 0.87 = 24.36 A</code>.'],
+ why:'The NEC single-phase and three-phase tables have no 265/277 V columns; this footnote gives the conversion.'},
+{id:'fl-4',t:'wire',d:3,num:{v:30,tol:0.001,u:'A'},q:'UL 508A <b>Table 28.1</b>: what is the ampacity of <b>10 AWG copper at 75 °C</b>? How does it compare with 14 AWG and 12 AWG at 75 °C and with NEC 310.15?',
+ a:'<b>30 A</b>. In Table 28.1 the 75 °C copper values for 14 / 12 / 10 AWG are <b>15 / 20 / 30 A</b> (the same as the 60 °C column), whereas NEC 310.15(B) shows 20 / 25 / 35 A.',
+ steps:['Table 28.1, 10 AWG, 75 °C, copper → <code>30 A</code>.','14 AWG → 15 A, 12 AWG → 20 A (also equal to the 60 °C values).','Compare NEC 310.15(B), 75 °C: 14 → 20 A, 12 → 25 A, 10 → 35 A.'],
+ why:'Use the table your exam supplies. UL 508A Table 28.1 reflects the 15 / 20 / 30 A overcurrent limits for small conductors. Also note the 60 °C column stops at 1 AWG – 1/0 AWG and larger have only 75 °C values.'},
+{id:'fl-5',t:'wire',d:2,num:{v:30,tol:0.001,u:'A'},q:'UL 508A <b>Table 28.1</b>: find the ampacity of (a) <b>8 AWG aluminum at 60 °C</b>, (b) <b>6 AWG aluminum at 75 °C</b>, (c) <b>4 AWG copper at 60 °C</b>.',
+ a:'(a) <b>30 A</b> (b) <b>50 A</b> (c) <b>70 A</b>.',
+ steps:['Aluminum 60 °C: 12 AWG 15 A, 10 AWG 25 A, <b>8 AWG 30 A</b>, 6 AWG 40 A.','Aluminum 75 °C: <b>6 AWG 50 A</b>, 4 AWG 65 A.','Copper 60 °C: <b>4 AWG 70 A</b>.'],
+ why:'Aluminum has no 14 AWG entry. Aluminum values are about 20–25 % lower than copper for the same size.'},
+{id:'fl-6',t:'wire',d:3,num:{v:300,tol:0.001,u:'A'},q:'A terminal is marked to accommodate <b>two</b> <b>1/0 AWG copper</b> conductors. What ampacity does Table 28.1 allow for the pair (75 °C), and why can’t you use the 60 °C column for 1/0 AWG?',
+ a:'<b>300 A</b> (2 × 150 A). 1/0 AWG and larger have values only in the <b>75 °C</b> column – the 60 °C column ends at 1 AWG (110 A).',
+ steps:['75 °C copper 1/0 AWG = <code>150 A</code>.','Note 1: for multiple conductors of the same size (1/0 AWG or larger) at a terminal, multiply by the number of conductors the terminal accommodates: <code>2 × 150 = 300 A</code>.','Circuits above 100 A use the 75 °C column.'],
+ why:'The multiplier only applies to 1/0 AWG and larger conductors.'},
+{id:'fl-7',t:'ctrl',d:3,q:'A control circuit is protected by a <b>5 A</b> fuse. Table 38.1 lists 20 AWG at 5 A. Can you wire an ordinary relay-and-pushbutton control circuit with 20 AWG? What are 28 and 30 AWG allowed for?',
+ a:'<b>No</b> – 20 AWG and smaller (20–30 AWG) are only for connecting control circuits for <b>electronic programmable input/output and static control</b> (no moving parts). An ordinary control circuit uses <b>18 AWG (7 A) minimum</b>. 28 and 30 AWG (0.8 A and 0.5 A) are further limited to conductors in a <b>jacketed multi-conductor cable</b>.',
+ steps:['Table 38.1: 16 AWG = 10 A, 18 AWG = 7 A, 20 AWG = 5 A (b), 22 = 3, 24 = 2, 26 = 1, 28 = 0.8 (a, b), 30 = 0.5 (a, b).','Footnote b: PLC I/O and static control only; footnote a: jacketed multi-conductor cable only.','For a 5 A protected relay circuit: <code>18 AWG (7 A)</code>.'],
+ why:'Size the control wire from the amp rating of the control-circuit overcurrent device (or the CPT / power-supply secondary rating) – and remember the 18 AWG minimum for ordinary control wiring.'},
 /* ---------- WIRE ---------- */
 {id:'wire-1',t:'wire',d:2,q:'What is the smallest copper equipment grounding conductor (AWG) for circuits protected by a <b>100 A</b> breaker?',
  num:{v:8,tol:0.001,u:'AWG'},
@@ -843,7 +872,7 @@ Q.forEach(q=>{
 Q.forEach(q=>{const id=q.id;
  if(/^p[1-4]-/.test(id))q.part=+id[1];
  else if(['scope-1','scope-2','scope-4','scope-6','wire-2'].includes(id))q.part=1;
- else if(['scope-3','scope-5','ctrl-4','xfmr-10'].includes(id))q.part=3;
+ else if(['scope-3','scope-5','ctrl-4','xfmr-10','fl-7'].includes(id))q.part=3;
  else if(id==='up-6')q.part=2;
  else if(q.sec==='control')q.part=3;
  else if(q.sec==='sccr')q.part=4;
@@ -1014,7 +1043,49 @@ function sbTxHTML(tab,note){return `<div class="tbl"><table><tr><th>Max kVA</th>
 function sb42HTML(){return Object.entries(SB42).map(([cls,rows])=>`<details class="les"><summary>${cls}</summary><div class="lb tbl"><table><tr><th rowspan="2">Amp</th><th colspan="2">Threshold – 50 kA</th><th colspan="2">100 kA</th><th colspan="2">200 kA</th></tr><tr><th>I²t ×10³</th><th>I<sub>p</sub> kA</th><th>I²t ×10³</th><th>I<sub>p</sub> kA</th><th>I²t ×10³</th><th>I<sub>p</sub> kA</th></tr>${rows.map(r=>`<tr><td>${r[0]}</td>${r.slice(1).map(v=>`<td>${nf(v)}</td>`).join('')}</tr>`).join('')}</table></div></details>`).join('')+`<p class="note">UL umbrella limits (Table SB4.2, as reprinted by Cooper Bussmann, 2008). Intermediate Class J and T values in the 100 kA column are from UL 248 and were not yet in Supplement SB. Values marked * for 700 / 800 A apply to Class L fuses.</p>`}
 function sb41HTML(){return `<div class="tbl"><table><tr><th>Component</th><th>Default SCCR (kA)</th></tr>${SB41.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('')}</table></div><p class="note">* No SCCR is required when connected through a current transformer or shunt; a directly connected current meter needs a marked SCCR. ** Standard fault-current rating for a motor controller within the stated horsepower range. *** Miniature fuses are limited to 125 V circuits. Table SB4.1 as reprinted by Cooper Bussmann (2008) – check the edition you are tested on.</p>`}
 
-const FIGS={ws1:()=>wsPanel({}),ws2:()=>wsPanel({feeder:true,br3:{pdb:30},br4:{pdb:30}}),ws3:()=>wsPanel({br4:{cr:5,ol:5}}),ws4:()=>wsPanel({br3:{pdb:10,ol:5},br4:{pdb:10},cb6:10,br8:{cb:100}}),ws5:wsBranch1,ws6:wsBranch8,ws7:()=>wsPanel({feeder:true,pdb1:true,br3:{pdb:30},br4:{pdb:30}}),xf1:()=>figXf(1),xf2:()=>figXf(2),pct:figPct,bars1:()=>barSvg([['Bus bar',10],['Fuse holder',10],['Terminal block',10],['Disconnect switch',5],['Starter + overload',5]]),
+/* ============================== UL 508A Tables 28.1 and 38.1, FLC vs nameplate figures ============================== */
+// Table 28.1 – ampacities of insulated conductors (A): [size, mm², 60 °C Cu, 60 °C Al, 75 °C Cu, 75 °C Al]
+const T281=[['14',2.1,15,null,15,null],['12',3.3,20,15,20,15],['10',5.3,30,25,30,25],['8',8.4,40,30,50,40],['6',13.3,55,40,65,50],['4',21.2,70,55,85,65],['3',26.7,85,65,100,75],['2',33.6,95,75,115,90],['1',42.4,110,85,130,100],
+ ['1/0',53.5,null,null,150,120],['2/0',67.4,null,null,175,135],['3/0',85,null,null,200,155],['4/0',107.2,null,null,230,180],['250 kcmil',127,null,null,255,205],['300',152,null,null,285,230],['350',177,null,null,310,250],['400',203,null,null,335,270],['500',253,null,null,380,310],['600',304,null,null,420,340],['700',355,null,null,460,375],['750',380,null,null,475,385],['800',405,null,null,490,395],['900',456,null,null,520,425],['1000',506,null,null,545,445],['1250',633,null,null,590,485],['1500',760,null,null,625,520],['1750',887,null,null,650,545],['2000',1013,null,null,665,560]];
+// Table 38.1 – ampacity of control circuit conductors
+const T381=[[10,'16','1.13'],[7,'18','0.82'],[5,'20<sup>b</sup>','0.52'],[3,'22<sup>b</sup>','0.32'],[2,'24<sup>b</sup>','0.20'],[1,'26<sup>b</sup>','0.13'],[0.8,'28<sup>a, b</sup>','0.08'],[0.5,'30<sup>a, b</sup>','0.05']];
+function t281HTML(){return `<div class="tbl"><table><tr><th rowspan="2">Wire size (AWG / kcmil)</th><th rowspan="2">mm²</th><th colspan="2">60 °C</th><th colspan="2">75 °C</th></tr><tr><th>Copper</th><th>Aluminum</th><th>Copper</th><th>Aluminum</th></tr>${T281.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td>${r.slice(2).map(v=>`<td>${v==null?'–':v}</td>`).join('')}</tr>`).join('')}</table></div><p class="note">Note 1: for multiple conductors of the same size (1/0 AWG or larger) at a terminal, the ampacity is the table value for that conductor multiplied by the number of conductors the terminal is able to accommodate. Circuits of 100 A or less: use the 60 °C column unless the terminals are marked for higher. Note that 14 / 12 / 10 AWG copper at 75 °C is <b>15 / 20 / 30 A</b> here (NEC 310.15 shows 20 / 25 / 35 A).</p>`}
+function t381HTML(){return `<div class="tbl"><table><tr><th>Ampacity, A</th><th>AWG</th><th>mm²</th></tr>${T381.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('')}</table></div><p class="note"><sup>a</sup> Where these conductors are contained in a jacketed multi-conductor cable assembly. <sup>b</sup> These sizes are only for connection of control circuits for electronic programmable input/output and static control (no moving parts). Size the wire from the ampere rating of the control-circuit overcurrent device (or the CPT / power-supply secondary rating).</p>`}
+/* FLC vs nameplate – two-panel graphic (NEC 430.6(A)) */
+function figFlcNp(){
+ return `<div class="svgwrap"><svg class="sv" viewBox="0 0 660 276" role="img" aria-label="Table FLC versus nameplate amperes" fill="none" stroke="var(--ink)" stroke-width="1.2" style="min-width:560px;width:100%">
+ <text x="330" y="22" text-anchor="middle" style="font-size:14px;font-weight:700">FLC versus nameplate amperes – NEC 430.6(A)</text>
+ <rect x="12" y="38" width="305" height="228" rx="12" fill="var(--acc2)"/>
+ <text x="165" y="64" text-anchor="middle" style="font-size:13px;font-weight:700">Full-load current (FLC)</text><text x="165" y="80" text-anchor="middle" class="sm">430.6(A)(1) – from the NEC table</text>
+ <path d="M55 130 q50 -22 110 0 q60 -22 110 0 v38 q-55 -22 -110 0 q-55 -22 -110 0 z" fill="var(--card)"/><line x1="165" y1="130" x2="165" y2="168"/>
+ <text x="165" y="112" text-anchor="middle" style="font-size:12px">National Electrical Code table</text>
+ <text x="30" y="198" style="font-size:12px;font-weight:700">The table FLC is used to size:</text><text x="38" y="216" style="font-size:12px">• Conductors</text><text x="38" y="232" style="font-size:12px">• Disconnects</text><text x="38" y="248" style="font-size:12px">• Short-circuit and ground-fault</text><text x="46" y="262" style="font-size:12px">protection devices</text>
+ <rect x="343" y="38" width="305" height="228" rx="12" fill="var(--warnbg)"/>
+ <text x="495" y="64" text-anchor="middle" style="font-size:13px;font-weight:700">Nameplate amperes (FLA)</text><text x="495" y="80" text-anchor="middle" class="sm">430.6(A)(2) – from the motor nameplate</text>
+ <rect x="385" y="96" width="220" height="86" rx="6" fill="var(--card)"/><text x="495" y="112" text-anchor="middle" style="font-size:10px;font-weight:700">MOTOR NAMEPLATE</text>
+ <text x="398" y="130" style="font-size:10px">VOLTS 230/460   HP 40   PH 3</text><text x="398" y="146" style="font-size:10px">S.F. 1.15   RPM 1770</text>
+ <rect x="396" y="152" width="120" height="22" fill="none" stroke="var(--bad)" stroke-width="2"/><text x="402" y="167" style="font-size:12px;font-weight:700;fill:var(--bad)">FLA 94 / 47 A</text>
+ <text x="360" y="214" style="font-size:12px;font-weight:700">The motor nameplate is used to size</text><text x="360" y="232" style="font-size:12px;font-weight:700">overload protection.</text></svg></div>`}
+/* Worked example: nameplate vs table (40 hp, 230/460 V) */
+function figFl1(){
+ const row=(y,cells,hl)=>cells.map((c,i)=>`<text x="${[385,420,468,516,564,612,654][i]}" y="${y}" text-anchor="middle" style="font-size:11px${hl&&i===4?';font-weight:700;fill:var(--bad)':''}">${c}</text>`).join('');
+ return `<div class="svgwrap"><svg class="sv" viewBox="0 0 700 290" role="img" aria-label="Motor nameplate and NEC table values for a 40 hp 460 V motor" fill="none" stroke="var(--ink)" stroke-width="1.2" style="min-width:600px;width:100%">
+ <rect x="10" y="30" width="250" height="250" rx="8" fill="var(--card)"/><text x="135" y="52" text-anchor="middle" style="font-size:12px;font-weight:700">INDUSTRIAL MOTOR – nameplate</text><text x="135" y="20" text-anchor="middle" class="sm">FLA (actual current)</text>
+ <text x="24" y="82" style="font-size:12px">HP</text><text x="190" y="82" style="font-size:13px;font-weight:700">40</text><rect x="180" y="68" width="44" height="20" stroke="var(--acc)" stroke-width="2"/>
+ <text x="24" y="108" style="font-size:12px">VOLTS</text><text x="170" y="108" style="font-size:13px;font-weight:700">230 / 460</text>
+ <text x="24" y="134" style="font-size:12px">AMPS</text><rect x="150" y="116" width="100" height="26" stroke="var(--bad)" stroke-width="2"/><text x="160" y="134" style="font-size:13px;font-weight:700;fill:var(--bad)">94 / 47</text>
+ <text x="24" y="160" style="font-size:12px">RPM 1770   FRAME 324JM</text><text x="24" y="182" style="font-size:12px">S.F. 1.15   PH 3   HZ 60</text><text x="24" y="204" style="font-size:12px">DESIGN B   CLASS F   EFF 93   PF 85</text>
+ <text x="135" y="240" text-anchor="middle" style="font-size:11px;font-weight:700">47 A at 460 V → overload relay</text><text x="135" y="256" text-anchor="middle" class="sm">47 × 1.25 = 58.75 A max (S.F. ≥ 1.15)</text>
+ <text x="540" y="20" text-anchor="middle" class="sm">FLC (calculated current) – NEC table, induction motors</text>
+ <rect x="350" y="30" width="344" height="24" fill="var(--code)"/>${row(46,['HP','200 V','208 V','230 V','460 V','575 V','2300 V'])}
+ <rect x="350" y="62" width="344" height="24" fill="var(--warnbg)"/>${row(78,['40','120','114','104','52','41','–'],true)}
+ <rect x="544" y="62" width="40" height="24" stroke="var(--bad)" stroke-width="2"/>
+ <path d="M224 78 H348" stroke="var(--acc)" stroke-width="1.6"/><path d="M348 78 l-8 -4 v8 z" fill="var(--acc)" stroke="none"/>
+ <text x="522" y="116" text-anchor="middle" style="font-size:12px;font-weight:700">Table FLC = 52 A at 460 V</text>
+ <text x="522" y="136" text-anchor="middle" style="font-size:12px">→ conductors: 52 × 1.25 = 65 A</text><text x="522" y="154" text-anchor="middle" style="font-size:12px">→ branch protection: 52 × 250 % = 130 A</text><text x="522" y="172" text-anchor="middle" style="font-size:12px">→ disconnect rating</text>
+ <text x="522" y="206" text-anchor="middle" class="sm">The table value (52 A) is higher than the nameplate (47 A) –</text><text x="522" y="220" text-anchor="middle" class="sm">each is used for a different job.</text></svg></div>`}
+
+const FIGS={flcnp:figFlcNp,fl1:figFl1,ws1:()=>wsPanel({}),ws2:()=>wsPanel({feeder:true,br3:{pdb:30},br4:{pdb:30}}),ws3:()=>wsPanel({br4:{cr:5,ol:5}}),ws4:()=>wsPanel({br3:{pdb:10,ol:5},br4:{pdb:10},cb6:10,br8:{cb:100}}),ws5:wsBranch1,ws6:wsBranch8,ws7:()=>wsPanel({feeder:true,pdb1:true,br3:{pdb:30},br4:{pdb:30}}),xf1:()=>figXf(1),xf2:()=>figXf(2),pct:figPct,bars1:()=>barSvg([['Bus bar',10],['Fuse holder',10],['Terminal block',10],['Disconnect switch',5],['Starter + overload',5]]),
  bars2:()=>barSvg([['Bus bar',10],['Fuse holder',10],['Terminal block',10],['Class J fuse (IR)',200],['65 kA combination',65]]),tri:figTri};
 
 /* ============================== question cards ============================== */
@@ -1109,7 +1180,9 @@ function viewRef(){
  <tr><td>Overload (nameplate)</td><td>125 % (SF ≥ 1.15 or ≤ 40 °C rise) / 115 % others; up to 140 % / 130 %</td></tr>
  <tr><td>Branch device rounding</td><td>round <b>up</b> to next standard size</td></tr>
  <tr><td>Feeder device (guide p. 4)</td><td>largest branch device + FLC of all other loads (incl. CPT primary); closest standard size; must not exceed load-side conductor ampacity</td></tr></table></div></div>
- <div class="card"><h3>Copper conductor ampacity (A)</h3><div class="tbl"><table><tr><th>AWG</th>${W60.map(w=>`<td>${w[0]}</td>`).join('')}</tr><tr><th>60 °C</th>${W60.map(w=>`<td>${w[1]}</td>`).join('')}</tr><tr><th>75 °C</th>${W75.map(w=>`<td>${w[1]}</td>`).join('')}</tr></table></div><p class="note">≤ 100 A circuits: use the 60 °C column. 14/12/10 AWG overcurrent limits: 15/20/30 A.</p></div>
+ <div class="card"><h3>FLC versus nameplate amperes (NEC 430.6(A))</h3>${figFlcNp()}${figFl1()}<ul><li><b>Table FLC</b> → conductors, disconnects, short-circuit and ground-fault protection devices.</li><li><b>Nameplate FLA</b> → overload protection (use the value for the connected voltage).</li><li>265 V / 277 V motors: decrease the corresponding 220–240 V table value by <b>13 % / 17 %</b>.</li></ul></div>
+ <div class="card"><h3>Table 28.1 – ampacities of insulated conductors (UL 508A)</h3>${t281HTML()}</div>
+ <div class="card"><h3>Table 38.1 – ampacities of control circuit conductors (UL 508A)</h3>${t381HTML()}</div>
  <div class="card"><h3>Round up or round down? – standard sizes</h3>${UPDOWN(false)}</div>
  <div class="card"><h3>Standard overcurrent device ratings (NEC 240.6)</h3><div class="chips">${STD.map(v=>`<span class="chip${v<15?' fuse':''}">${v} A</span>`).join('')}</div><p class="note">Amber chips (1, 3, 6, 10 A) are fuse sizes only; circuit breakers start at 15 A.</p></div>
  <div class="card"><h3>Table SB4.1 – default component SCCR (no marked value)</h3>${sb41HTML()}</div>
@@ -1215,13 +1288,13 @@ function simMotor(box){
   const base=np||flc,olp=sf>=1.15?1.25:1.15,ol=base*olp,ol2=base*(sf>=1.15?1.4:1.3);
   $('#mo',box).innerHTML=`<h3 style="margin-top:0">Result: ${hp} hp, ${v} V, ${$('#ph',box).value==='3'?'3-phase':'single-phase'}</h3>
   <ol class="steps"><li>Table FLC = <b>${flc} A</b></li>
-  <li>Conductor ampacity = 125 % × FLC: <code>${fmt(flc,2)} × 1.25 = ${fmt(cond)} A</code> → <b>${wire} AWG Cu</b> (${cond>100?'75':'60'} °C column)</li>
+  <li>Conductor ampacity = 125 % × FLC: <code>${fmt(flc,2)} × 1.25 = ${fmt(cond)} A</code> → <b>${wireLab(wire)} Cu</b> (${cond>100?'75':'60'} °C column, Table 28.1)</li>
   <li>Branch device max: <code>${pct} % × ${flc} = ${fmt(maxD)} A</code>${pct===800?' (adjustable MCP setting)':` → next standard size up: <b>${dev} A</b>`}</li>
   <li>Overload (${np?'nameplate '+np+' A':'table FLC used – enter nameplate FLA for accuracy'}), SF ${sf}: max <code>${olp*100} % × ${fmt(base,2)} = ${fmt(ol)} A</code>; may be raised to ${(sf>=1.15?140:130)} % = ${fmt(ol2)} A if it trips on starting</li></ol>
   <svg viewBox="0 0 560 92" style="width:100%;max-width:640px" aria-label="motor branch circuit one-line"><line x1="10" y1="46" x2="540" y2="46" stroke="var(--ink)" stroke-width="2"/>
   ${[['Disconnect',70],['Branch SCPD '+(pct===800?fmt(maxD)+'A':dev+'A'),190],['Contactor',310],['Overload '+fmt(ol)+'A',420]].map(b=>`<rect x="${b[1]-48}" y="26" width="96" height="40" rx="6" fill="var(--acc2)" stroke="var(--acc)"/><text x="${b[1]}" y="51" font-size="11" text-anchor="middle">${b[0]}</text>`).join('')}
   <circle cx="515" cy="46" r="22" fill="var(--card)" stroke="var(--ink)" stroke-width="2"/><text x="515" y="51" font-size="14" text-anchor="middle" font-weight="700">M</text><text x="515" y="88" font-size="11" text-anchor="middle">${flc} A FLC</text>
-  <text x="300" y="14" font-size="11" text-anchor="middle">${wire} AWG Cu conductors</text></svg>`};
+  <text x="300" y="14" font-size="11" text-anchor="middle">${wireLab(wire)} Cu conductors</text></svg>`};
  box.onchange=e=>{if(e.target.id==='ph'||e.target.id==='vv')fill();calc()};
  fill();calc()}
 
