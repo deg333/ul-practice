@@ -62,6 +62,7 @@ code[data-tex="1"]{background:none;padding:0;font-family:inherit;font-size:1.05e
 .svgwrap{overflow-x:auto;margin:10px 0;border:1px solid var(--line);border-radius:8px;background:var(--card);padding:6px}
 .sv text{font:9.5px system-ui,sans-serif;fill:var(--ink);stroke:none}.sv .k{fill:var(--bad);font-weight:700}.sv .g{fill:var(--ph-c);font-size:14px;font-weight:700}.sv .sm{font-size:8px;fill:var(--mut)}
 .choices{margin:8px 0}.choices label{display:block;padding:6px 10px;border:1px solid var(--line);border-radius:8px;margin:4px 0;cursor:pointer}.choices label:hover{border-color:var(--acc)}.choices .row{margin-top:6px}
+.tipbox{background:var(--acc2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}.tip h3{font-size:1.05rem}ul.tips li{margin:8px 0}.tip a{color:var(--acc)}
 </style>
 </head>
 <body>
@@ -1453,10 +1454,32 @@ const PARTS={
  D('Default values and markings',`<p>Bus bar 10 kA · fuse holder 10 kA · terminal block / PDB 10 kA · circuit breaker 5 kA · switch 5 kA · overload relay 5 kA · motor controller 5 kA (≤ 50 hp) / 10 kA (51–200 hp) / larger by hp · GFCI receptacle 2 kA · supplementary protector 0.2 kA. Combination markings (e.g. “65 kA with 100 A max breaker”) apply only with the stated protection. The panel marking is “<b>SCCR X kA @ voltage</b>”. Full lesson: <b>SCCR</b> section.</p><p class="note">Verify default values against Table SB4.1 in your edition.</p>`)}
 };
 function partCount(n){const qs=Q.filter(q=>q.part===n);return{n:qs.length,done:qs.filter(q=>prog[q.id]==='got').length}}
+
+const EXAM_TIPS=()=>`<div class="card tip" style="margin-top:14px"><h3 style="margin:0 0 8px">⚠️ Exam tip: how is the transformer connected?</h3>
+ <p>The full-load current of a <b>1000 VA, 480 V</b> transformer depends on the connection – read the question and diagram carefully.</p>
+ <div class="grid"><div class="tipbox"><b>True 3-phase unit</b> supplying 3-phase loads<br><code>I = VA ÷ (√3 × V) = 1000 ÷ (√3 × 480) = 1000 ÷ 831.4 = 1.203 A</code></div>
+ <div class="tipbox"><b>Two legs of the 480 V supply</b> (single-phase control transformer, L1–L2)<br><code>I = VA ÷ V = 1000 ÷ 480 = 2.083 A</code></div></div>
+ <ol class="steps"><li>Identify the values: <code>S = 1000 VA</code> (1 kVA), <code>V = 480 V</code>, <code>√3 ≈ 1.732</code>.</li><li>Multiply the bottom row first: <code>√3 × 480 = 831.4</code>.</li><li>Divide the VA by that result: <code>1000 ÷ 831.4 = 1.203 A</code> (≈ 1.20 A).</li></ol>
+ <div class="why"><b>Watch out:</b> in a UL 508A industrial control panel a control power transformer (CPT) is almost always a <b>single-phase</b> device connected across <b>two phases</b> of the 480 V line. Connected to two legs you must <b>drop the √3</b>: <code>2.083 A</code>, not 1.20 A. Check the wording: does the question describe a <i>3-phase transformer</i>, or a <i>3-phase 480 V supply with a single-phase control transformer</i>?</div>
+ <p class="note">Practice: <a href="#control">Control Transformers</a> section and the “two legs” questions; see also the 0.85 kVA example in Part 3.</p></div>
+ <div class="card tip"><h3 style="margin:0 0 8px">More exam tips</h3><ul class="tips">
+ <li><b>Minimum or maximum?</b> A calculated <i>minimum</i> (ampacity, heater device, disconnect, kVA) rounds <b>up</b>. A calculated <i>maximum</i> rounds <b>down</b> unless the rule says the next size up is permitted (motor branch device, 125 % transformer rows). See the Reference tab.</li>
+ <li><b>Table vs nameplate.</b> Motor branch-circuit conductors and short-circuit protection use the <b>table FLC</b>; the overload relay uses the <b>nameplate</b> current.</li>
+ <li><b>Only the largest motor gets 125 %</b>; add the other loads at 100 %, and count <b>heaters at 125 %</b> for the conductors.</li>
+ <li><b>Line-to-line voltage in 3-phase formulas.</b> 208 V, not 120 V. If only <b>kW</b> is given, convert with <code>kVA = kW ÷ PF</code> first.</li>
+ <li><b>Markings win.</b> A lower maximum fuse/breaker marked on a starter, overload relay or transformer overrides the calculated size, and a combination SCCR is valid only with the protection named in the marking.</li>
+ <li><b>Transformer protection.</b> Primary only: &lt; 2 A → 300 %, 2–9 A → 167 %, ≥ 9 A → 125 %. Primary + secondary: primary 250 %, secondary 125 % (≥ 9 A) or 167 % (&lt; 9 A). A delta–wye transformer needs a secondary device.</li>
+ <li><b>SCCR = weakest link.</b> A plain disconnect is not an OCPD. Series ratings are not allowed. Only a <b>transformer</b> lets you disregard downstream parts (use Tables SB4.3 / SB4.4), and only a <b>current-limiting device</b> lets you use peak let-through (Table SB4.2). Unmarked parts take the SB4.1 defaults (bus bar 10 kA, breaker 5 kA, terminal block 10 kA …).</li>
+ <li><b>Conductor column.</b> Circuits ≤ 100 A use the <b>60 °C</b> ampacity column unless the terminals are marked higher.</li>
+ <li><b>Wire colours.</b> Power: black (ungrounded), white/gray (grounded), green or green/yellow (ground). Control: red AC, blue DC, orange = live when the disconnect is off (“excepted”). Control wire is 18 AWG minimum except PLC I/O.</li>
+ <li><b>Enclosures.</b> Indoor general = 1; outdoor rain = 3R; washdown / corrosion = 4X; dust and drip = 12; oil and coolant = 13. Hubs and fittings must match the enclosure Type.</li>
+ <li><b>Look at the answer choices.</b> If both a smaller and a larger standard size are offered, decide whether the rule says “not exceed” (down) or “next size up permitted” (up). A distractor is often the ampere rating of a fuse in a question that asks for kA.</li>
+ <li><b>Read the question twice for the connection and the unit:</b> single- or 3-phase, line-to-line or line-to-neutral, VA or kVA, kW or kVA.</li>
+ <li><b>Use your references.</b> Know where Tables 50.1, 28.1, SB4.1–SB4.4 are; verify percentages against the edition your exam provides.</li></ul></div>`;
 function viewParts(){
  const m=$('#main');
  m.innerHTML=`<div class="banner">The questions are organised like the exam: <b>Part 1</b> General UL 508A information, <b>Part 2</b> Enclosed panels and power circuits, <b>Part 3</b> Control circuits, ratings, markings and enclosures, <b>Part 4</b> SCCR. Each part has study notes and practice questions with hidden answers, and a quiz.</div>
- <div class="grid">${[1,2,3,4].map(n=>{const c=partCount(n);return `<article class="card" style="margin:0"><h3 style="margin:0 0 6px">${PARTS[n].title}</h3><ul style="margin:0 0 10px;padding-left:18px">${PARTS[n].covers.map(x=>`<li>${x}</li>`).join('')}</ul><div class="prog"><i style="width:${c.n?c.done/c.n*100:0}%"></i></div><div class="note" style="margin:4px 0 8px">${c.n} questions · knew it ${c.done}</div><div class="row"><button class="btn pri sm" data-go="part${n}">Open Part ${n}</button><button class="btn sm" data-quiz="part:${n}">Quiz</button></div></article>`}).join('')}</div>`;
+ <div class="grid">${[1,2,3,4].map(n=>{const c=partCount(n);return `<article class="card" style="margin:0"><h3 style="margin:0 0 6px">${PARTS[n].title}</h3><ul style="margin:0 0 10px;padding-left:18px">${PARTS[n].covers.map(x=>`<li>${x}</li>`).join('')}</ul><div class="prog"><i style="width:${c.n?c.done/c.n*100:0}%"></i></div><div class="note" style="margin:4px 0 8px">${c.n} questions · knew it ${c.done}</div><div class="row"><button class="btn pri sm" data-go="part${n}">Open Part ${n}</button><button class="btn sm" data-quiz="part:${n}">Quiz</button></div></article>`}).join('')}</div>`+EXAM_TIPS();
  m.onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.go)go(b.dataset.go);else if(b.dataset.quiz){store.set('ul508a.pendingQuiz',b.dataset.quiz);go('quiz')}}}
 function viewPart(n){
  const P=PARTS[n],m=$('#main'),all=Q.filter(q=>q.part===n);
