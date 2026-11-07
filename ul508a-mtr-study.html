@@ -58,7 +58,7 @@ canvas{width:100%;display:block;background:var(--card);border:1px solid var(--li
 .sub button.on{background:var(--acc2);border-color:var(--acc);color:var(--acc);font-weight:600}
 @media(max-width:560px){body{font-size:15px}.card{padding:12px}}
 .les{border:1px solid var(--line);border-radius:10px;margin:8px 0;background:var(--card)}.les summary{cursor:pointer;padding:9px 12px;font-weight:600}.les .lb{padding:2px 14px 12px}.les p{margin:6px 0}.les ul,.les ol{margin:6px 0;padding-left:22px}
-code[data-tex="1"]{background:none;padding:0;font-family:inherit;font-size:1.05em}.katex{font-size:1.08em}.steps li,.les li{margin:9px 0;line-height:1.75}.steps li:has(.katex-html){line-height:1.95}code[data-tex="1"]{display:inline-block;vertical-align:middle}.steps code[data-tex="1"] .katex{font-size:1.12em}
+code[data-tex="1"]{background:none;padding:0;font-family:inherit;font-size:1.05em}.katex{font-size:1.08em}.steps li,.les li{margin:9px 0;line-height:1.75}.steps li:has(.katex-html){line-height:1.95}code[data-tex="1"]{display:inline-block;vertical-align:middle;max-width:100%;overflow-x:auto;overflow-y:hidden}.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.chip{background:var(--acc2);color:var(--acc);border-radius:99px;padding:2px 10px;font-weight:600;font-size:.9rem}.chip.fuse{background:var(--warnbg);color:var(--warn)}.steps code[data-tex="1"] .katex{font-size:1.12em}
 </style>
 </head>
 <body>
@@ -829,7 +829,7 @@ function viewRef(){
  <tr><td>Branch device rounding</td><td>round <b>up</b> to next standard size</td></tr>
  <tr><td>Feeder device (guide p. 4)</td><td>largest branch device + FLC of all other loads (incl. CPT primary); closest standard size; must not exceed load-side conductor ampacity</td></tr></table></div></div>
  <div class="card"><h3>Copper conductor ampacity (A)</h3><div class="tbl"><table><tr><th>AWG</th>${W60.map(w=>`<td>${w[0]}</td>`).join('')}</tr><tr><th>60 °C</th>${W60.map(w=>`<td>${w[1]}</td>`).join('')}</tr><tr><th>75 °C</th>${W75.map(w=>`<td>${w[1]}</td>`).join('')}</tr></table></div><p class="note">≤ 100 A circuits: use the 60 °C column. 14/12/10 AWG overcurrent limits: 15/20/30 A.</p></div>
- <div class="card"><h3>Standard overcurrent device ratings (NEC 240.6)</h3><p><code>${STD.join(', ')}</code> A &nbsp;(1, 3, 6, 10 A are fuse sizes; breakers start at 15 A)</p></div>
+ <div class="card"><h3>Standard overcurrent device ratings (NEC 240.6)</h3><div class="chips">${STD.map(v=>`<span class="chip${v<15?' fuse':''}">${v} A</span>`).join('')}</div><p class="note">Amber chips (1, 3, 6, 10 A) are fuse sizes only; circuit breakers start at 15 A.</p></div>
  <div class="card"><h3>Default component SCCR (Supplement SB, no marked value)</h3><div class="tbl"><table><tr><th>Component</th><th>kA</th></tr>
  <tr><td>Bus bar</td><td>50</td></tr><tr><td>Fuse holder</td><td>10</td></tr><tr><td>Terminal block / power distribution block</td><td>10</td></tr><tr><td>Circuit breaker (UL 489)</td><td>5</td></tr><tr><td>Disconnect / switch unit</td><td>5</td></tr><tr><td>Motor controller (contactor, starter)</td><td>5</td></tr><tr><td>Overload relay</td><td>5</td></tr></table></div><p class="note">Marked values override defaults. Control-circuit parts behind a small, protected control transformer are generally excluded from the SCCR evaluation.</p></div>
  <div class="card"><h3>Transformer rated current – examples (Larson Electronics)</h3><div class="tbl"><table><tr><th>Transformer</th><th>Primary A</th><th>Secondary A</th></tr><tr><td>Single-phase 25 kVA, 480 → 240 V</td><td>52.1</td><td>104.2</td></tr><tr><td>3-phase 75 kVA, 480 → 208Y/120 V</td><td>90.2</td><td>208.2</td></tr><tr><td>3-phase 500 kVA, 4160 → 480 V</td><td>69.4</td><td>601.4</td></tr></table></div></div>
@@ -1169,7 +1169,7 @@ $('#theme').onclick=()=>{const r=document.documentElement,d=r.dataset.theme==='d
 /* Converts the plain-text formulas in <code> elements (e.g. "I<sub>p</sub> = 500 ÷ 480 = 1.04 A") to LaTeX
    and renders them with KaTeX. Anything it cannot convert safely stays as the original text. */
 const MU=new Set(['A','V','W','s','Hz','kA','kV','kW','VA','kVA','hp','kvar','var','ft','in','mm','AWG','kcmil','kHz','mA']);
-const REL={'=':'=','≈':'\\approx','≥':'\\geq','≤':'\\leq','→':'\\rightarrow','<':'<','>':'>','+':'+','−':'-','-':'-','–':'-',',':',\\ ',':':':',';':';'};
+const REL={'=':'=','≈':'\\approx','≥':'\\geq','≤':'\\leq','→':'\\rightarrow','↔':'\\leftrightarrow','<':'<','>':'>','+':'+','−':'-','-':'-','–':'-',',':',\\ ',':':':',';':';'};
 function mjSub(t){return '\\mathrm{'+t.replace(/-/g,'\\text{-}').replace(/%/g,'\\%')+'}'}
 function mjTok(s){
  const T=[];let i=0,m;
@@ -1181,6 +1181,9 @@ function mjTok(s){
   id.lastIndex=i;if(/[A-Za-z]/.test(c)&&(m=id.exec(s))){T.push({t:'id',v:m[1],sub:m[2],sup:m[3]});i=id.lastIndex;continue}
   if('()'.includes(c)){T.push({t:c==='('?'lp':'rp'});i++;continue}
   if(c==='×'||c==='÷'){T.push({t:'op',v:c});i++;continue}
+  if(c==='·'){T.push({t:'op',v:'·'});i++;continue}
+  if(c==='φ'){T.push({t:'raw',v:'\\varphi '});i++;continue}
+  if(c==='↔'){T.push({t:'rel',v:'↔'});i++;continue}
   if(c in REL){T.push({t:'rel',v:c});i++;continue}
   if(c==='%'){T.push({t:'pct'});i++;continue}
   if(c==='√'){T.push({t:'sqrt'});i++;continue}
@@ -1204,7 +1207,7 @@ function mjAtoms(T){ // merge units, build groups; returns nested list or null
  return st.length===1?st[0]:null}
 function mjAtom(x){
  if(x.t==='num')return x.v+(x.sup?'^{'+x.sup+'}':'')+(x.sup2?'^{'+x.sup2+'}':'')+(x.unit||'');
- if(x.t==='id'){const base=x.v.length===1?x.v:'\\mathrm{'+x.v+'}';return base+(x.sub!=null?'_{'+mjSub(x.sub)+'}':'')+(x.sup?'^{'+x.sup+'}':'')+(x.sup2?'^{'+x.sup2+'}':'')}
+ if(x.t==='id'){const base=/^(sin|cos|tan)$/.test(x.v)?'\\'+x.v+'\\,':(x.v.length===1?x.v:'\\mathrm{'+x.v+'}');return base+(x.sub!=null?'_{'+mjSub(x.sub)+'}':'')+(x.sup?'^{'+x.sup+'}':'')+(x.sup2?'^{'+x.sup2+'}':'')}
  if(x.t==='raw')return x.v;if(x.t==='pct')return '\\%';
  return ''}
 function mjSeq(items){ // split at relations, then handle fractions per term
@@ -1225,13 +1228,15 @@ function mjTerm(items){
  if(!ops.length)return keep[0];
  let acc=keep[0],accBare=bare[0];
  for(let k=0;k<ops.length;k++){
-  if(ops[k]==='×'){acc=acc+' \\times '+keep[k+1];accBare=acc}
+  if(ops[k]==='×'||ops[k]==='·'){acc=acc+(ops[k]==='·'?' \\cdot ':' \\times ')+keep[k+1];accBare=acc}
   else{acc='\\dfrac{'+accBare+'}{'+bare[k+1]+'}';accBare=acc}}
  return acc}
 function toTeX(html){
  let s=html.replace(/<sub>(.*?)<\/sub>/g,'\u0001$1\u0002').replace(/<sup>(.*?)<\/sup>/g,'\u0003$1\u0004').replace(/<[^>]+>/g,'').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').replace(/&nbsp;/g,' ').trim();
- if(!/[=×÷≈√→]/.test(s)&&!/^[+−-]?\s*[\d.,\s]+\s*[A-Za-z%]{0,4}$/.test(s))return null;
+ s=s.replace(/ \/ /g,' ÷ ');
+ if(!/[=×÷≈√→·]/.test(s)&&!/^[+−-]?\s*\d[\d.,]*(?: \d{3})*\s*[A-Za-z%]{0,4}$/.test(s))return null;
  if(/[a-z]{4,}/.test(s.replace(/kvar/g,'')))return null;
+ if((s.match(/, /g)||[]).length>=2)return null;
  const T=mjTok(s);if(!T||!T.length)return null;
  const A=mjAtoms(T);if(!A)return null;
  return mjSeq(A)}
