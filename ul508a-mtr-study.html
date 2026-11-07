@@ -107,7 +107,7 @@ const Q=[
  a:'<b>UL 508</b> covers industrial control <i>equipment</i> (individual components: contactors, starters, switches, relays, etc.). <b>UL 508A</b> covers industrial control <i>panels</i> – assemblies built from those components.',
  why:'A panel shop is evaluated against UL 508A. The components inside are evaluated to their own standards (UL 508, UL 489, UL 248, UL 1077 …). A panel is only as acceptable as its parts: every power-circuit part must be Listed/Recognized for the use.'},
 {id:'scope-2',t:'scope',d:1,q:'What does UL 508A cover, and what is outside its scope?',
- a:'Covers <b>industrial control panels for general industrial use, 1000 V or less (typically ≤ 600 V), in ordinary (non-hazardous) locations</b>, intended to control other equipment (power + control circuits, enclosure, disconnect, protection).<br>Outside scope: panels for <b>hazardous (classified) locations</b> (see UL 698A), and special-purpose panels with their own standard (e.g. HVAC, elevators, marine, etc.).',
+ a:'Covers <b>industrial control panels for general industrial use, 600 V or less, in ordinary (non-hazardous) locations</b>, intended to control other equipment (power + control circuits, enclosure, disconnect, protection).<br>Outside scope: panels for <b>hazardous (classified) locations</b> (see UL 698A), and special-purpose panels with their own standard (e.g. HVAC, elevators, marine, etc.).',
  why:'Industrial control panels are an NEC Article 409 product. UL 508A is the product standard that lets the panel be Listed and field-accepted by the AHJ.'},
 {id:'scope-3',t:'scope',d:2,q:'List the main markings required on a UL 508A industrial control panel nameplate.',
  a:'<ul><li>Manufacturer name / trademark</li><li>Supply <b>voltage, phases, frequency</b></li><li><b>Full-load current</b> rating (total) and <b>FLC of the largest motor</b></li><li><b>Short-circuit current rating (SCCR)</b></li><li><b>Enclosure type</b></li><li><b>Wiring diagram number</b> / schematic reference</li><li>Date or serial / file number; “Industrial Control Panel” (UL Listing mark when listed)</li></ul>',
@@ -529,6 +529,102 @@ const Q=[
 {id:'sc-10',t:'sccr',d:2,q:'How is the SCCR expressed on the panel marking and why is the voltage included?',
  a:'As a current value with a voltage, e.g. <b>“SCCR: 5 kA @ 480Y/277 V”</b> (Eaton guide p. 70). The component ratings are voltage-dependent (e.g. 480Y/277 V vs 480 V or 600 V), so the panel rating applies only at the stated voltage.',
  why:'A slash rating such as 480Y/277 V means a solidly grounded wye system only; a 480 V delta/corner-grounded system may need a component rated for 480 V (straight).'},
+/* ---------- EXAM PART 1: GENERAL UL 508A INFORMATION ---------- */
+{id:'p1-1',t:'scope',d:1,q:'What are the voltage limit and the intended use of the industrial control panels covered by UL 508A?',
+ a:'Industrial control panels for <b>general industrial use</b>, operating from a supply of <b>600 V or less</b> (e.g. 480Y/277 V, 480 V, 575/600 V systems), installed in <b>ordinary (non-hazardous) locations</b>.',
+ why:'Panels for hazardous (classified) locations are covered by <b>UL 698A</b>, and equipment above 600 V is outside this scope. <span class="note">Verify the exact scope wording in your edition (some newer editions extend the voltage range).</span>'},
+{id:'p1-2',t:'scope',d:2,q:'Give the UL 508A definition of an <b>industrial control panel</b>.',
+ a:'An <b>assembly of two or more power circuit components</b> (motor controllers, overload relays, fused disconnect switches, circuit breakers) <b>or control circuit components</b> (push buttons, pilot lights, selector switches, timers, switches, control relays), <b>or a combination of both</b>, with associated wiring, terminals, marking and an enclosure or support.',
+ why:'A single component in an enclosure is not an industrial control panel under this definition – the panel is the <i>assembly</i> of components that provides the control function.'},
+{id:'p1-3',t:'scope',d:2,q:'Classify each as a <b>power circuit</b> or <b>control circuit</b> component: contactor, push button, overload relay, fused disconnect, pilot light, timer relay, circuit breaker, selector switch.',
+ a:'<b>Power circuit:</b> contactor, overload relay, fused disconnect, circuit breaker.<br><b>Control circuit:</b> push button, pilot light, timer relay, selector switch.',
+ why:'Power circuit parts carry the load current and are evaluated for SCCR and branch protection; control circuit parts handle signals/logic. (The contactor <i>coil</i> is in the control circuit; its <i>poles</i> are in the power circuit.)'},
+{id:'p1-4',t:'scope',d:2,q:'Match the standard to its subject: (a) UL 508 (b) UL 508A (c) UL 698A (d) UL 489 (e) UL 248 (f) UL 1077 (g) UL 50 / 50E',
+ a:'<b>UL 508</b> – industrial control equipment (components).<br><b>UL 508A</b> – industrial control panels.<br><b>UL 698A</b> – panels for hazardous (classified) locations.<br><b>UL 489</b> – molded-case circuit breakers (branch-circuit rated).<br><b>UL 248</b> – low-voltage fuses (branch-circuit classes; 248-14 supplemental).<br><b>UL 1077</b> – supplementary protectors.<br><b>UL 50 / UL 50E</b> – enclosures for electrical equipment (construction / environmental type ratings).',
+ why:'Knowing which standard a component is Listed or Recognized to tells you where it may be used (e.g. UL 1077 devices are supplementary only).'},
+{id:'p1-5',t:'scope',d:2,q:'Which article of the NEC covers industrial control panels, and which two NEC sections tie directly into UL 508A markings?',
+ a:'<b>NEC Article 409</b> (Industrial Control Panels). <b>409.110</b> – marking (including supply data, SCCR, enclosure type); <b>409.22</b> – the panel’s short-circuit current rating must be at least the available fault current.',
+ why:'UL 508A is the <i>product</i> standard; the NEC is the <i>installation</i> code. The panel markings give the installer what NEC 409 requires.'},
+{id:'p1-6',t:'scope',d:2,q:'What is the role of the <b>Manufacturer’s Technical Representative (MTR)</b> in a UL 508A panel shop, and what are typical responsibilities?',
+ a:'The MTR is the person named by the panel shop who has passed the UL MTR exam and is responsible for <b>keeping the shop’s panels in compliance</b> with UL 508A and the Follow-Up Services program. Typical duties:<ul><li>Knows UL 508A and the shop’s Follow-Up Services Procedure; has access to the current standard</li><li>Ensures only <b>Listed / Recognized components</b> are used within their ratings and conditions</li><li>Ensures panel construction, wiring, SCCR evaluation, marking and enclosure meet the standard</li><li>Controls the <b>UL Listing Mark / labels</b> (inventory, application only to compliant panels)</li><li>Keeps <b>records</b> (drawings, bill of materials, SCCR calculations, label/control-number log)</li><li>Is the contact for UL’s periodic <b>follow-up inspections</b> and takes corrective action on findings</li><li>Reports changes (components, procedures, locations) as required by the program</li></ul>',
+ why:'<span class="note">Program rules come from UL’s Follow-Up Services Procedure for your shop – use it and your MTR training material as the authority; this list is a study outline.</span>'},
+{id:'p1-7',t:'scope',d:2,q:'Who applies the UL Listing Mark to a panel built under the UL 508A program, and what must be true before it is applied?',
+ a:'The <b>panel shop</b> applies the UL-supplied Listing Mark/label (under the MTR’s control) to each panel – and <u>only</u> to a panel that fully complies with UL 508A and the shop’s procedure (Listed/Recognized components within ratings, correct SCCR, correct wiring, markings and enclosure).',
+ why:'UL does not inspect each panel individually; it audits the shop’s system and records at follow-up visits. Misusing the mark can lead to loss of the program. <span class="note">Check the program wording in your Follow-Up Services Procedure.</span>'},
+{id:'p1-8',t:'wire',d:2,q:'List the general UL 508A rules for <b>internal power-circuit wiring</b> and the color identification of power conductors (Eaton guide p. 40–41).',
+ a:'<ul><li>All internal wiring conductors are <b>copper</b>.</li><li>Power circuit conductors <b>not smaller than 14 AWG</b>.</li><li>Power circuit conductors <b>labelled at the termination</b> with letters/numbers matching the wiring diagram.</li><li>Colors: <b>black</b> = all ungrounded power conductors; <b>white / gray</b> (or three continuous white stripes) = grounded conductor; <b>green or green/yellow</b> = protective conductor.</li><li>Exception: insulated conductors 4 AWG or larger with other colors are identified at each termination by a white marking (e.g. tape) when used as the grounded conductor.</li></ul>',
+ why:'Colour identifies function – never use white/gray or green on an ungrounded conductor.'},
+{id:'p1-9',t:'scope',d:2,q:'A circuit breaker is marked <b>480Y/277 V</b> (a “slash” rating). Where may it be used and where not?',
+ a:'Only on a <b>solidly grounded wye</b> system where the voltage to ground is not more than 277 V and line-to-line not more than 480 V (e.g. 480Y/277 V). It may <u>not</u> be used on 480 V delta, corner-grounded or ungrounded systems, where a straight <b>480 V</b> rating is needed.',
+ why:'Slash-rated devices rely on the grounded neutral to limit the voltage across each pole during interruption. The same applies to SCCR values marked “@ 480Y/277 V”.'},
+{id:'p1-10',t:'scope',d:2,q:'A component is rated <b>240 V</b> and the panel will be connected to a <b>480 V</b> 3-phase supply. Is this allowed? What does the panel marking state about the supply?',
+ a:'<b>Not allowed</b> – every component must be rated for at least the voltage (and phase/frequency) of the circuit it is on. The nameplate states the <b>supply voltage, phases and frequency</b> so the installer connects the correct source.',
+ why:'Voltage rating on the component is a maximum: e.g. a 480 V-rated contactor can be used on 240 V but a 240 V-rated contactor cannot be used on 480 V.'},
+/* ---------- EXAM PART 2 additions ---------- */
+{id:'p2-1',t:'scope',d:2,q:'What is the difference between an <b>open</b> and an <b>enclosed</b> industrial control panel?',
+ a:'<b>Enclosed panel</b> – the components are in an enclosure that meets the standard and carries an <b>enclosure Type</b> marking; it can be installed as supplied. <b>Open panel</b> – a subassembly with no enclosure (a backplane/frame); it must be installed in a <b>suitable enclosure</b> that meets the environment and spacings, and its markings tell the installer so.',
+ why:'Enclosed panels have the enclosure type among their markings; for open panels the installer’s enclosure supplies the environmental protection. <span class="note">Details of the open-panel marking differ by edition – verify.</span>'},
+{id:'p2-2',t:'scope',d:3,q:'A supply disconnect (not horsepower-rated) feeds the panel with 21 A, 7.6 A and 3.4 A motors and a 6.0 A resistive heater. Minimum current rating of the disconnect (115 % rule), and the maximum height of its operating handle?',
+ num:{v:43.7,tol:0.01,u:'A'},
+ a:'Sum = 21 + 7.6 + 3.4 + 6.0 = <b>38.0 A</b> → × 1.15 = <b>43.7 A</b> minimum (pick the next available rating, e.g. 50 or 60 A). Operating handle not higher than <b>6 ft 7 in (2.0 m)</b> above the floor in its highest position.',
+ steps:['Add the full-load currents of all loads that can operate at the same time: <code>21 + 7.6 + 3.4 + 6.0 = 38.0 A</code>.','Disconnect rating ≥ 115 % of that: <code>38.0 × 1.15 = 43.7 A</code>.','Select the next standard rating that is ≥ 43.7 A.'],
+ why:'If the disconnect is horsepower rated, the hp rating must also be ≥ the largest motor. <span class="note">Verify the 115 % wording and handle height in your edition (UL 508A / NEC 404.8).</span>'},
+/* ---------- EXAM PART 3: CONTROL CIRCUITS, RATINGS, MARKINGS, ENCLOSURES ---------- */
+{id:'p3-1',t:'ctrl',d:2,q:'Control circuit conductors in a panel are protected by a <b>6 A</b> fuse (a CPT secondary). What is the smallest copper conductor allowed by UL 508A Table 38.1, and what is the general minimum control wire size? (Eaton p. 49)',
+ num:{v:18,tol:0.001,u:'AWG'},
+ a:'<b>18 AWG</b> (ampacity 7 A ≥ 6 A). The general minimum control wire is <b>18 AWG</b>, except for PLC / electronic I/O conductors.',
+ steps:['The wire is selected from the <b>amp rating of the overcurrent device</b> (or the CPT / power-supply secondary rating).','Table 38.1: 16 AWG = 10 A, <b>18 AWG = 7 A</b>, 20 AWG = 5 A, 22 AWG = 3 A, 24 AWG = 2 A, 26 AWG = 1 A.','Smallest size whose ampacity ≥ 6 A: <code>18 AWG (7 A)</code> (20 AWG at 5 A is too small).'],
+ why:'20 AWG and smaller are only for programmable/electronic input-output and static control circuits (no moving parts). Ratings of 28/30 AWG apply only inside jacketed multiconductor cables.'},
+{id:'p3-2',t:'ctrl',d:2,q:'Give the wire-colour code for <b>control circuit</b> conductors (Eaton p. 48).',
+ a:'<b>Red</b> – ungrounded AC control; <b>Blue</b> – ungrounded DC control; <b>Black</b> – ungrounded AC/DC conductors (power); <b>Orange</b> – ungrounded conductors that stay live with the main disconnect OFF (“excepted circuits”); <b>White/gray</b> – grounded control conductor; <b>White with blue stripe</b> – grounded DC; <b>White with orange stripe</b> – grounded excepted circuit; <b>Green or green/yellow</b> – protective conductor.',
+ why:'An orange wire in a panel warns that the circuit remains energized when the disconnect is off – see the next question.'},
+{id:'p3-3',t:'ctrl',d:3,q:'What is an <b>“excepted circuit”</b> (interlocked/live with the disconnect OFF) and what must you do about it?',
+ a:'A circuit that is <b>not de-energized when the main disconnect is OFF</b> – for example cabinet lighting, a service receptacle or a separately-fed interlocked circuit. Its conductors are identified <b>orange</b> (white with orange stripe if grounded), and the panel carries a <b>warning marking</b> that more than one source of power exists.',
+ why:'The warning tells service personnel that opening the main disconnect does not make everything dead. <span class="note">Exact marking text is in the “Markings” clauses of UL 508A – verify.</span>'},
+{id:'p3-4',t:'ctrl',d:2,q:'List the acceptable <b>sources of control circuit power</b> in a panel, as shown in the Eaton guide (pp. 44, 68).',
+ a:'<ol><li>A <b>control power transformer (CPT)</b> from the power circuit voltage (e.g. 480 → 120 V).</li><li>A <b>power supply</b> (e.g. 24 V DC).</li><li>The control circuit <b>tapped from the power circuit at the same voltage</b> (no transformer), with protection per the control-conductor table (p. 69).</li></ol>',
+ why:'Each source has its own protection: CPT – primary / primary + secondary fuses; power supply – branch protection per its marking; tapped – overcurrent device sized for the wire (UL 508A Table 66.5).'},
+{id:'p3-5',t:'ctrl',d:3,q:'Why must wiring of different circuits (power, control, Class 2) be <b>separated</b> inside the panel, and how can that separation be achieved?',
+ a:'To prevent a higher-voltage or higher-energy circuit from contacting a lower-voltage circuit and to avoid shock/fire hazards from insulation damage. Separation can be achieved by <b>separate wireways/ducts</b>, a <b>barrier</b>, <b>spacing</b>, or by using conductors <b>insulated for the highest voltage</b> present.',
+ why:'Class 2 / limited-energy wiring is kept apart from power wiring (or insulated for the higher voltage). <span class="note">The required spacing or barrier details are in the wiring sections of UL 508A – verify the exact values.</span>'},
+{id:'p3-6',t:'ctrl',d:3,q:'What is a <b>Class 2</b> circuit and how does its protection differ from a normal control circuit?',
+ a:'A <b>power-limited</b> circuit supplied by a Class 2 transformer or power supply whose output is inherently limited (about 30 V ac / 60 V dc maximum and a limited power level, roughly 100 VA). Because the source itself limits energy, the secondary does not need the same overcurrent protection as an unlimited control transformer; the source must be <b>marked Class 2</b>.',
+ why:'A 24 V DC Class 2 supply for PLC inputs is common. Class 2 conductors must be kept separate from power circuit wiring (previous question).'},
+{id:'p3-7',t:'scope',d:2,q:'A panel contains: 15 hp (21 A), 5 hp (7.6 A) and 2 hp (3.4 A) motors at 460 V and a 6.0 A resistive load. What full-load current and largest-motor current are marked on the nameplate?',
+ num:{v:38,tol:0.01,u:'A'},
+ a:'<b>Full-load current 38.0 A</b>; <b>largest motor FLC 21 A</b> (15 hp). Also marked: supply voltage, phases, frequency, SCCR, enclosure type, wiring diagram number.',
+ steps:['Total full-load current: <code>21 + 7.6 + 3.4 + 6.0 = 38.0 A</code> (loads that can operate at the same time).','Largest motor FLC: <code>21 A</code> (table value).','Marked: <code>38.0 A, largest motor 21 A</code>.'],
+ why:'The installer uses these numbers to size the supply conductors (125 % of the largest motor + the rest) and the feeder protection.'},
+{id:'p3-8',t:'scope',d:2,q:'What is the purpose of the <b>control number / serial number</b> on a UL Listing label, and what must the panel shop record?',
+ a:'It is a <b>unique identifier</b> that traces each labelled panel to the shop’s <b>construction records</b> (drawings, bill of materials, SCCR calculation, test results). The shop must keep the control-number log and be able to show UL which panel a label was applied to.',
+ why:'<span class="note">Program specifics (label format, record retention period) are in your UL Follow-Up Services Procedure – confirm there.</span>'},
+{id:'p3-9',t:'scope',d:2,q:'List the main <b>marking categories</b> on an industrial control panel: nameplate data, listing marks and warning labels.',
+ a:'<b>Nameplate:</b> manufacturer name; supply voltage, phases, frequency; full-load current and largest-motor current; SCCR (with voltage); enclosure type; wiring-diagram number; date/serial.<br><b>Listing marks:</b> the UL Listing Mark with the panel category text (“Industrial Control Panel”) and the control number.<br><b>Warning labels:</b> multiple-source / excepted-circuit warning, shock hazards, and field-wiring markings such as “use copper conductors” with the temperature rating and tightening torque for field terminals.',
+ why:'Markings must be durable, legible and visible. <span class="note">Exact wording requirements are in UL 508A’s marking clauses – verify the text for your edition.</span>'},
+{id:'p3-10',t:'scope',d:2,q:'Which enclosure Type would you specify for: (a) indoor clean area, (b) outdoor rain, snow and ice (not watertight), (c) washdown with corrosive chemicals, (d) indoor oil mist and coolant, (e) indoor dust and dripping non-corrosive liquid, (f) temporarily submersible?',
+ a:'(a) <b>Type 1</b> (b) <b>Type 3R</b> (c) <b>Type 4X</b> (d) <b>Type 13</b> (e) <b>Type 12</b> (f) <b>Type 6</b>',
+ why:'Eaton p. 72 rough IP equivalents: Type 1 ≈ IP20, 3R ≈ IP24, 4 / 4X ≈ IP66, 12 ≈ IP54, 13 ≈ IP54, 6 ≈ IP67. IP ratings are not a substitute for UL Type ratings: Type ratings are third-party certification.'},
+{id:'p3-11',t:'scope',d:3,q:'Which standards deal with <b>enclosure construction</b> and <b>environmental type ratings</b>, and which standard rule applies to hubs, fittings and cutouts you add to the enclosure?',
+ a:'<b>UL 50</b> – construction of enclosures; <b>UL 50E</b> – environmental considerations / Type ratings (these standards are referenced by UL 508A). Any <b>hub, fitting, gland or cutout</b> added to the enclosure must maintain the enclosure’s Type rating – e.g. a Type 4X enclosure needs Type 4X-rated (watertight, corrosion-resistant) hubs.',
+ why:'Cutting a standard knockout in a Type 4 enclosure without a rated hub voids the Type rating. Always match the accessory Type to the enclosure Type.'},
+/* ---------- EXAM PART 4 additions ---------- */
+{id:'p4-1',t:'sccr',d:2,q:'What is a <b>current-limiting device (CLD)</b> and which fuse classes are current-limiting?',
+ a:'A fuse or breaker that, on a fault, opens so quickly (within the first half cycle) that the current never reaches its prospective peak: it limits <b>peak let-through current (I<sub>p</sub>)</b> and <b>I²t</b>. Current-limiting fuse classes include <b>Class CC, J, T, L</b> and <b>RK1</b> (and RK5 with higher let-through); circuit breakers only if marked/listed as current-limiting.',
+ why:'In the Eaton example a Class CC fuse with <b>PLT &lt; 5 kA</b> protects a 5 kA-rated drive even though much more current is available. Smaller-ampere fuses limit more.'},
+{id:'p4-2',t:'sccr',d:3,q:'Where must a current-limiting device be placed to raise the SCCR of a <b>branch-circuit component</b> in a panel, and what does it <u>not</u> replace?',
+ a:'In the <b>feeder</b> circuit (upstream of the branch/branches to be protected). It <b>may not be the branch-circuit protective device of the branch being strengthened</b>, and every protective device in the feeder must still have an interrupting rating ≥ the panel SCCR.',
+ why:'Eaton p. 70: “Current-limiting elements – such as fuses or circuit breakers – must be installed in the feeder circuit and must not be the branch circuit protective device of the branch to be strengthened.”'},
+{id:'p4-3',t:'sccr',d:3,q:'A contactor/overload combination is marked <b>“65 kA @ 480 V with 100 A max circuit breaker”</b>. The panel uses a <b>125 A</b> breaker ahead of it. Can you use the 65 kA value?',
+ a:'<b>No.</b> The 65 kA rating applies only with the protection named in the marking (breaker ≤ 100 A). With a 125 A breaker the combination rating is not valid; use the component’s other marked/default SCCR (e.g. 5 kA) or change the protection.',
+ why:'Component SCCR markings are conditional – always check the type, class and maximum ampere rating of the protection (and the voltage) in the marking.'},
+{id:'p4-4',t:'sccr',d:3,q:'All branch components in a panel have SCCR ≥ 65 kA, but the <b>main circuit breaker</b> has an interrupting rating of only <b>25 kA</b> and no current-limiting device is upstream. What is the panel SCCR?',
+ num:{v:25,tol:0.001,u:'kA'},
+ a:'<b>25 kA</b> – the feeder protective device interrupting rating limits the panel.',
+ steps:['Feeder protective devices must have an interrupting capacity ≥ the panel SCCR.','Components: all ≥ 65 kA; main breaker = 25 kA.','Panel SCCR = <code>min(65, 25) = 25 kA</code>.'],
+ why:'You cannot claim a higher panel rating by series-rating the main with downstream devices – UL 508A does not recognise series ratings.'},
+{id:'p4-5',t:'sccr',d:3,q:'Explain <b>peak let-through</b> and why a 30 A current-limiting fuse protects a downstream component better than a 600 A fuse of the same class at the same available fault current.',
+ a:'A current-limiting fuse melts and arcs within the first quarter-to-half cycle, so the actual peak current (I<sub>p</sub>) stays below the prospective peak. The <b>smaller</b> the fuse’s ampere rating, the faster it opens and the <b>lower</b> the let-through (I<sub>p</sub> and I²t). A 30 A fuse therefore lets through far less than a 600 A fuse at the same fault level.',
+ why:'This is why SCCR rules relate a downstream component’s peak/I²t withstand to the upstream fuse class and ampere rating (Supplement SB limits). Use only manufacturer or standard let-through data.'},
 /* ---------- WIRE ---------- */
 {id:'wire-1',t:'wire',d:2,q:'What is the smallest copper equipment grounding conductor (AWG) for circuits protected by a <b>100 A</b> breaker?',
  num:{v:8,tol:0.001,u:'AWG'},
@@ -604,6 +700,16 @@ Q.forEach(q=>{
  if(q.t==='sccr'||q.id.startsWith('sc-'))q.sec='sccr';
  else if(q.id.startsWith('xc-')||q.id.startsWith('pw-')||SECIDS.power.includes(q.id))q.sec='power';
  else if(q.id.startsWith('xi-')||q.id.startsWith('ct-')||SECIDS.control.includes(q.id))q.sec='control';});
+
+/* ---- exam part assignment ---- */
+Q.forEach(q=>{const id=q.id;
+ if(/^p[1-4]-/.test(id))q.part=+id[1];
+ else if(['scope-1','scope-2','scope-4','scope-6','wire-2'].includes(id))q.part=1;
+ else if(['scope-3','scope-5','ctrl-4','xfmr-10'].includes(id))q.part=3;
+ else if(id==='up-6')q.part=2;
+ else if(q.sec==='control')q.part=3;
+ else if(q.sec==='sccr')q.part=4;
+ else q.part=2;});
 
 /* ============================== figures ============================== */
 function figPct(){ // percent of FLC ladder
@@ -685,12 +791,12 @@ function viewStudy(){
 /* ---------- Quiz view ---------- */
 function viewQuiz(){
  const m=$('#main');
- m.innerHTML=`<div class="card"><div class="row"><label>Topic <select id="qt"><option value="all">All topics</option><optgroup label="Sections">${Object.entries(SECTIONS).map(([k,v])=>`<option value="sec:${k}">${v.title} (section)</option>`).join('')}</optgroup><optgroup label="Topics">${Object.entries(TOPICS).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</optgroup></select></label>
+ m.innerHTML=`<div class="card"><div class="row"><label>Topic <select id="qt"><option value="all">All topics</option><optgroup label="Exam parts">${[1,2,3,4].map(n=>`<option value="part:${n}">${PARTS[n].title}</option>`).join('')}</optgroup><optgroup label="Sections">${Object.entries(SECTIONS).map(([k,v])=>`<option value="sec:${k}">${v.title} (section)</option>`).join('')}</optgroup><optgroup label="Topics">${Object.entries(TOPICS).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</optgroup></select></label>
  <label><input type="checkbox" id="qm"> Only questions I missed / haven’t answered</label><button class="btn pri" id="qs">Start quiz</button></div></div><div id="quiz"></div>`;
  {const pq=store.get('ul508a.pendingQuiz',null);if(pq)$('#qt').value=pq;}
  $('#qs').onclick=()=>{
   store.set('ul508a.pendingQuiz',null);
-  const tv=$('#qt').value;let qs=Q.filter(q=>tv==='all'||(tv.startsWith('sec:')?q.sec===tv.slice(4):q.t===tv));
+  const tv=$('#qt').value;let qs=Q.filter(q=>tv==='all'||(tv.startsWith('sec:')?q.sec===tv.slice(4):tv.startsWith('part:')?q.part===+tv.slice(5):q.t===tv));
   if($('#qm').checked)qs=qs.filter(q=>prog[q.id]!=='got');
   qs=qs.map(q=>[Math.random(),q]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
   if(!qs.length){$('#quiz').innerHTML='<div class="card">Nothing to quiz – you’ve marked everything as known 🎉</div>';return}
@@ -1001,12 +1107,56 @@ function viewSection(key){
  $('#gosim').onclick=()=>go('sim',S.sim);
  wireCards(list,(q,c)=>{const n=qs.indexOf(q)+1;c.outerHTML=cardHTML(q,0,{n}).replace('reveal hide','reveal');bar()})}
 
+/* ============================== exam parts ============================== */
+const PARTS={
+1:{title:'Part 1 – General UL 508A Information',covers:['Scope and maximum ratings (such as 600 VAC systems)','Program rules and responsibilities of the Manufacturer Technical Representative (MTR)','General definitions, wiring, and source voltage guidelines'],
+ notes:()=>D('Scope, definitions and standards',`<ul><li><b>UL 508A</b> – industrial control <i>panels</i>, general industrial use, <b>600 V or less</b>, ordinary locations. <b>UL 508</b> – the control <i>components</i>. <b>UL 698A</b> – hazardous-location panels.</li><li>Industrial control panel = assembly of <b>two or more</b> power-circuit and/or control-circuit components with wiring, terminals, marking and an enclosure/support.</li><li>NEC <b>Article 409</b> is the installation code (409.22 SCCR, 409.110 marking).</li><li>Listed vs <b>Recognized</b> components; protective devices: UL 489 breakers, UL 248 fuses (branch) vs UL 1077 / 248-14 (supplementary).</li></ul>`,true)+
+ D('The MTR and the program',`<p>The <b>Manufacturer’s Technical Representative</b> is the shop’s trained and examined person who keeps panels compliant: components, construction, SCCR, markings, label control and records, and is the contact for UL’s follow-up inspections. The shop applies the UL Listing Mark only to compliant panels.</p><p class="note">Study outline – the Follow-Up Services Procedure for your shop is the authority.</p>`)+
+ D('Wiring and source voltage',`<ul><li>Internal wiring is <b>copper</b>; power conductors ≥ <b>14 AWG</b>; label conductors at terminations to match the diagram.</li><li>Colours: power – black (ungrounded), white/gray (grounded), green or green/yellow (protective).</li><li>Component voltage rating ≥ circuit voltage; <b>slash ratings</b> (480Y/277 V) only on solidly grounded wye systems.</li><li>Supply voltage, phases and frequency are marked on the nameplate.</li></ul>`)},
+2:{title:'Part 2 – Enclosed Panels and Power Circuits',covers:['Sizing and selection of power circuit conductors and protection devices','Disconnecting means, motor branch circuits, and transformer requirements','Open vs. enclosed industrial control panel requirements'],
+ notes:()=>D('Conductors and branch protection',`<ul><li>Motor FLC from the <b>table</b> (NEC 430.250 / 508A Table 50.1); overload from <b>nameplate</b>.</li><li>Conductors: <b>125 %</b> largest motor + other loads (+125 % of heaters); ≤ 100 A use the <b>60 °C</b> column.</li><li>Branch device max (% of FLC): inverse-time CB 250 %, time-delay fuse 175 %, non-time-delay/CC 300 %, MCP 800 %, self-protected 100 %. Round <b>up</b> in the branch circuit.</li><li>Feeder: largest branch device + other loads (Eaton p. 4). Group motor: % × largest + others.</li><li>Sizing up (400 %/225 %/…) only if the motor will not start, never above component markings.</li></ul>`,true)+
+ D('Disconnecting means and motor circuits',`<ul><li>Four functions: <b>disconnect, short-circuit protection, controller, overload protection</b>.</li><li>Non-motor-rated disconnect ≥ <b>115 %</b> of the sum of loads; handle height ≤ 6 ft 7 in. (verify edition).</li><li>Type E/F combination controllers: self-protected, 100 % – no sizing up.</li></ul>`)+
+ D('Transformers in the power circuit',`<p>Primary-only (125 % / 167 % / 300 %) vs primary + secondary (250 % / 125 % or 167 %); 3-phase uses √3 × V<sub>L-L</sub>; delta–wye needs a secondary device. See the <b>Power Transformers</b> section for the full lesson.</p>`)+
+ D('Open vs enclosed panels',`<p><b>Enclosed</b> panels include the enclosure and an enclosure Type marking; <b>open</b> panels must be installed in a suitable enclosure.</p>`)},
+3:{title:'Part 3 – Control Circuits, Ratings, Markings, and Enclosure Results',covers:['Control circuit voltage limitations, overcurrent protection, and separation of circuits','Nameplate data, listing marks, control numbers, and mandatory warning labels','Enclosure construction and environmental type ratings (UL 50 Types 1, 3R, 4X, 12, etc.)'],
+ notes:()=>D('Control circuits',`<ul><li>Sources: <b>CPT</b>, power supply, or tapped at the same voltage.</li><li>CPT protection: primary-only (<2 A → 300 %, 2–9 A → 167 %, ≥ 9 A → 125 %); primary + secondary (250 % / 167 % or 125 %). See <b>Control Transformers</b>.</li><li>Control wire sizes (Table 38.1): 16 AWG = 10 A, <b>18 AWG = 7 A</b> (minimum except PLC I/O), 20 = 5, 22 = 3, 24 = 2, 26 = 1 A.</li><li>Control colours: red = AC control, blue = DC control, orange = excepted circuit, green or green/yellow = protective.</li><li>Class 2 / limited-energy wiring is separated from power wiring.</li></ul>`,true)+
+ D('Nameplate, listing mark and warnings',`<ul><li>Nameplate: supply voltage/phases/frequency, full-load current (and largest motor), <b>SCCR</b>, enclosure type, wiring diagram number.</li><li>UL Listing Mark + control number; warning labels (multiple sources / excepted circuits, field wiring markings).</li></ul>`)+
+ D('Enclosure types (Eaton p. 72)',`<div class="tbl"><table><tr><th>Type</th><th>Use</th><th>Rough IP</th></tr><tr><td>1</td><td>Indoor, incidental contact, falling dirt</td><td>IP20</td></tr><tr><td>2</td><td>Indoor driptight</td><td>IP22</td></tr><tr><td>3 / 3S</td><td>Outdoor, dust-tight, rain-tight, sleet</td><td>IP55</td></tr><tr><td>3R</td><td>Outdoor rainproof, snow, sleet</td><td>IP24</td></tr><tr><td>3X / 3RX / 3SX</td><td>As 3 / 3R / 3S + corrosion resistance</td><td>IP55 / 24</td></tr><tr><td>4</td><td>Watertight, dusttight (hose-directed water)</td><td>IP66</td></tr><tr><td>4X</td><td>As 4 + corrosion resistance</td><td>IP66</td></tr><tr><td>5</td><td>Indoor driptight, dusttight</td><td>IP53</td></tr><tr><td>6</td><td>Temporarily submersible</td><td>IP67</td></tr><tr><td>12</td><td>Indoor, driptight, dusttight</td><td>IP54</td></tr><tr><td>13</td><td>Indoor, driptight, dusttight, oiltight</td><td>IP54</td></tr></table></div><p class="note">IP ratings are only a rough comparison; UL Types are third-party certified.</p>`)},
+4:{title:'Part 4 – Short-Circuit Current Ratings (SCCR)',covers:['Evaluating component SCCRs and calculating panel/branch-circuit SCCR using Supplement SB','Current-limiting devices (CLDs), let-through currents, and feeder vs. branch circuit coordination','Applying component marking rules and Table SB values'],
+ notes:()=>D('Method',`<ol><li>Compile the SCCR of every power-circuit component (marked value, else the Supplement SB default).</li><li>Find the weakest link.</li><li>Raise it with <b>current-limiting devices in the feeder</b> or tested combinations.</li><li>Replace low-interrupting branch devices if needed.</li></ol><p>Feeder protective devices must have interrupting rating ≥ panel SCCR. <b>No series ratings</b> in UL 508A.</p>`,true)+
+ D('Default values and markings',`<p>Bus bar 50 kA · fuse holder 10 kA · terminal block / PDB 10 kA · circuit breaker 5 kA · switch 5 kA · motor controller 5 kA · overload relay 5 kA. Combination markings (e.g. “65 kA with 100 A max breaker”) apply only with the stated protection. The panel marking is “<b>SCCR X kA @ voltage</b>”. Full lesson: <b>SCCR</b> section.</p><p class="note">Verify default values against Table SB4.1 in your edition.</p>`)}
+};
+function partCount(n){const qs=Q.filter(q=>q.part===n);return{n:qs.length,done:qs.filter(q=>prog[q.id]==='got').length}}
+function viewParts(){
+ const m=$('#main');
+ m.innerHTML=`<div class="banner">The questions are organised like the exam: <b>Part 1</b> General UL 508A information, <b>Part 2</b> Enclosed panels and power circuits, <b>Part 3</b> Control circuits, ratings, markings and enclosures, <b>Part 4</b> SCCR. Each part has study notes and practice questions with hidden answers, and a quiz.</div>
+ <div class="grid">${[1,2,3,4].map(n=>{const c=partCount(n);return `<article class="card" style="margin:0"><h3 style="margin:0 0 6px">${PARTS[n].title}</h3><ul style="margin:0 0 10px;padding-left:18px">${PARTS[n].covers.map(x=>`<li>${x}</li>`).join('')}</ul><div class="prog"><i style="width:${c.n?c.done/c.n*100:0}%"></i></div><div class="note" style="margin:4px 0 8px">${c.n} questions · knew it ${c.done}</div><div class="row"><button class="btn pri sm" data-go="part${n}">Open Part ${n}</button><button class="btn sm" data-quiz="part:${n}">Quiz</button></div></article>`}).join('')}</div>`;
+ m.onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.go)go(b.dataset.go);else if(b.dataset.quiz){store.set('ul508a.pendingQuiz',b.dataset.quiz);go('quiz')}}}
+function viewPart(n){
+ const P=PARTS[n],m=$('#main'),all=Q.filter(q=>q.part===n);
+ let topic=store.get('ul508a.parttopic'+n,'all');
+ const topics=[...new Set(all.map(q=>q.t))];
+ m.innerHTML=`<div class="sub">${[1,2,3,4].map(i=>`<button data-go="part${i}" class="${i===n?'on':''}">Part ${i}</button>`).join('')}<button data-go="parts">All parts</button></div>
+ <div class="card"><h2 style="margin:0 0 6px">${P.title}</h2><p class="note" style="margin:0 0 6px">What this part covers:</p><ul style="margin:0 0 10px;padding-left:20px">${P.covers.map(x=>`<li>${x}</li>`).join('')}</ul>${P.notes()}</div>
+ <div class="card"><div class="row"><b>Practice (<span id="cnt"></span>)</b><label>Topic <select id="pt_"><option value="all">All</option>${topics.map(t=>`<option value="${t}">${TOPICS[t]}</option>`).join('')}</select></label><button class="btn sm" id="showAll">Show all answers</button><button class="btn sm" id="hideAll">Hide all</button><button class="btn sm pri" id="qz">Quiz this part</button></div><div class="prog" style="margin-top:10px"><i id="pbar"></i></div><div class="note" id="pt"></div></div><div id="list"></div>`;
+ const list=$('#list'),cur=()=>all.filter(q=>topic==='all'||q.t===topic),bar=()=>{const c=partCount(n);$('#pbar').style.width=(c.n?c.done/c.n*100:0)+'%';$('#pt').textContent=`Knew it: ${c.done} / ${c.n} in this part`};
+ const draw=()=>{const qs=cur();$('#cnt').textContent=qs.length+' questions';list.innerHTML=qs.map((q,i)=>cardHTML(q,i,{n:i+1})).join('');bar()};
+ $('#pt_').value=topic;$('#pt_').onchange=e=>{topic=e.target.value;store.set('ul508a.parttopic'+n,topic);draw()};
+ $('#showAll').onclick=()=>$$('.reveal',list).forEach(r=>r.classList.remove('hide'));
+ $('#hideAll').onclick=()=>$$('.reveal',list).forEach(r=>r.classList.add('hide'));
+ $('#qz').onclick=()=>{store.set('ul508a.pendingQuiz','part:'+n);go('quiz')};
+ m.onclick=e=>{const b=e.target.closest('button');if(b&&b.dataset.go)go(b.dataset.go)};
+ wireCards(list,(q,c)=>{const n_=cur().indexOf(q)+1;c.outerHTML=cardHTML(q,0,{n:n_}).replace('reveal hide','reveal');bar()});
+ draw()}
+
 /* ============================== routing ============================== */
-const VIEWS={study:['All Questions',viewStudy],power:['Power Transformers',()=>viewSection('power')],control:['Control Transformers',()=>viewSection('control')],sccr:['SCCR',()=>viewSection('sccr')],quiz:['Quiz',viewQuiz],sim:['Simulators',viewSim],ref:['Reference',viewRef]};
+const VIEWS={parts:['Exam Parts',viewParts],part1:['Part 1',()=>viewPart(1)],part2:['Part 2',()=>viewPart(2)],part3:['Part 3',()=>viewPart(3)],part4:['Part 4',()=>viewPart(4)],study:['All Questions',viewStudy],power:['Power Transformers',()=>viewSection('power')],control:['Control Transformers',()=>viewSection('control')],sccr:['SCCR',()=>viewSection('sccr')],quiz:['Quiz',viewQuiz],sim:['Simulators',viewSim],ref:['Reference',viewRef]};
 function go(v,sub){if(sub){simTab=sub;store.set('ul508a.sim',sub)}if(stopFn){stopFn();stopFn=null}location.hash=v;render()}
 function render(){
- const v=(location.hash||'#study').slice(1);const cur=VIEWS[v]?v:'study';
- $('#nav').innerHTML=Object.entries(VIEWS).map(([k,x])=>`<button data-v="${k}" class="${k===cur?'on':''}">${x[0]}</button>`).join('');
+ const v=(location.hash||'#parts').slice(1);const cur=VIEWS[v]?v:'parts';
+ const hl=/^part[1-4]$/.test(cur)?'parts':cur;
+ $('#main').onclick=null;
+ $('#nav').innerHTML=Object.entries(VIEWS).filter(([k])=>!/^part[1-4]$/.test(k)).map(([k,x])=>`<button data-v="${k}" class="${k===hl?'on':''}">${x[0]}</button>`).join('');
  if(stopFn){stopFn();stopFn=null}
  VIEWS[cur][1]();window.scrollTo(0,0)}
 $('#nav').onclick=e=>{const b=e.target.closest('button');if(b)go(b.dataset.v)};

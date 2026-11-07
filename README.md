@@ -2,6 +2,7 @@
 
 Open **`ul508a-mtr-study.html`** in a browser (single self-contained file, works offline, no build step).
 
+- **Exam Parts** – questions organised like the exam: Part 1 General UL 508A Information, Part 2 Enclosed Panels and Power Circuits, Part 3 Control Circuits / Ratings / Markings / Enclosures, Part 4 SCCR – each with study notes, practice and a quiz
 - **Three dedicated practice sections** – *Power Transformers*, *Control Transformers* and *SCCR* – each with a step-by-step lesson, then practice questions with hidden answers and full math (plus a quiz-this-section button)
 - Study questions with hidden answers, worked math steps and explanations (numeric answer checker)
 - Quiz mode with progress tracking (saved in the browser)
