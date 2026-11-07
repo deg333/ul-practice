@@ -2,6 +2,7 @@
 
 Open **`ul508a-mtr-study.html`** in a browser (works offline, no build step). Keep the `vendor/katex/` folder next to it: it holds [KaTeX](https://katex.org) (MIT, v0.16.11) used to typeset the math. Without it the page still works and shows the formulas as plain text.
 
+- **Interactive tables** – hover highlights the row and column (merged headers handled), click pins the highlight and copies the value (numbers copied without commas/units), Esc clears
 - **Bookmark tabs** (left edge) – five colored tabs that slide out reference tables from any page: Motor FLC, Protection & rounding, Wire (Tables 28.1 / 38.1), SCCR (SB4.1 / SB4.2) and Transformers (450.3(B), SB4.3 / SB4.4)
 - **Calculator sidebar** (🖩 button, top right) – expression calculator with variables (`kva = 75`), `ans`, `%`, `sqrt`, trig in degrees and exam helpers (`up`/`down` standard sizes, `i3`, `isc3`, `flc3`, `wire`)
 - **Exam Parts** – questions organised like the exam: Part 1 General UL 508A Information, Part 2 Enclosed Panels and Power Circuits, Part 3 Control Circuits / Ratings / Markings / Enclosures, Part 4 SCCR – each with study notes, practice and a quiz

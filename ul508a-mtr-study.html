@@ -89,6 +89,14 @@ body.calc-open #calc{transform:none}
 .dbody{overflow:auto;padding:4px 16px 24px;flex:1}.dbody h4{margin:16px 0 6px;font-size:1rem;border-bottom:2px solid var(--tc);padding-bottom:3px}.dbody ul{padding-left:20px}
 @media(max-width:1000px){body{padding-left:40px}}
 @media print{.drawer{display:none}}
+
+.tbl table td,.tbl table th,.dbody table td,.dbody table th{cursor:pointer;transition:background .08s}
+.tbl td.hl,.tbl th.hl,.dbody td.hl,.dbody th.hl{background:var(--acc2)!important}
+.tbl td.hx,.tbl th.hx,.dbody td.hx,.dbody th.hx{background:var(--acc)!important;color:#fff!important}
+.tbl td.pin,.tbl th.pin,.dbody td.pin,.dbody th.pin{background:var(--warnbg)!important;box-shadow:inset 0 0 0 1px var(--warn)}
+.tbl td.pinx,.tbl th.pinx,.dbody td.pinx,.dbody th.pinx{background:var(--warn)!important;color:#111!important;font-weight:700}
+#toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,20px);background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:99px;font-weight:600;font-size:.92rem;opacity:0;pointer-events:none;transition:opacity .15s,transform .15s;z-index:60;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+#toast.on{opacity:1;transform:translate(-50%,0)}
 </style>
 </head>
 <body>
@@ -1229,7 +1237,7 @@ function viewRef(){
  const m=$('#main');
  const flcRows=(T,volts)=>{const hps=[...new Set(volts.flatMap(v=>Object.keys(T[v]).map(Number)))].sort((a,b)=>a-b);
   return `<table><tr><th>hp</th>${volts.map(v=>`<th>${v} V</th>`).join('')}</tr>${hps.map(h=>`<tr><td>${h}</td>${volts.map(v=>`<td>${T[v][h]??'–'}</td>`).join('')}</tr>`).join('')}</table>`};
- m.innerHTML=`<div class="banner">Reference tables reproduced for study. Always confirm against the standard / NEC edition used in your exam.</div>
+ m.innerHTML=`<div class="banner">Tip: hover any table to highlight its row and column; <b>click</b> to pin the highlight and copy the value (Esc clears pins). Reference tables reproduced for study. Always confirm against the standard / NEC edition used in your exam.</div>
  <div class="card"><h3>Motor full-load current (A)</h3><div class="grid"><div class="tbl"><b>3-phase (NEC 430.250 / UL 508A Table 50.1)</b>${flcRows(FLC3,[208,230,460,575])}</div><div class="tbl"><b>Single-phase (NEC 430.248)</b>${flcRows(FLC1,[115,230])}</div></div></div>
  <div class="card"><h3>Motor branch-circuit rules (max % of table FLC)</h3><div class="tbl">${RULES_TBL}</div></div>
  <div class="card"><h3>FLC versus nameplate amperes (NEC 430.6(A))</h3>${figFlcNp()}${figFl1()}<ul><li><b>Table FLC</b> → conductors, disconnects, short-circuit and ground-fault protection devices.</li><li><b>Nameplate FLA</b> → overload protection (use the value for the connected voltage).</li><li>265 V / 277 V motors: decrease the corresponding 220–240 V table value by <b>13 % / 17 %</b>.</li></ul></div>
@@ -1854,10 +1862,57 @@ const DRAWERS=[
   <div class="dhead"><b>${d.title}</b><button class="dx" aria-label="Close">✕</button></div><div class="dbody"></div></section>`).join('');
  const close=()=>$$('.drawer.open',root).forEach(x=>{x.classList.remove('open');$('.dtab',x).setAttribute('aria-expanded','false')});
  const open=el=>{const wasOpen=el.classList.contains('open');close();if(wasOpen)return;
-  const body=$('.dbody',el);if(!body.dataset.f){body.innerHTML=DRAWERS.find(d=>'dr-'+d.id===el.id).html();body.dataset.f='1'}
+  const body=$('.dbody',el);if(!body.dataset.f){body.innerHTML='<p class="note" style="margin:8px 0 0">Hover a table to highlight its row and column · click to pin it and copy the value.</p>'+DRAWERS.find(d=>'dr-'+d.id===el.id).html();body.dataset.f='1'}
   el.classList.add('open');$('.dtab',el).setAttribute('aria-expanded','true')};
  root.addEventListener('click',e=>{const el=e.target.closest('.drawer');if(!el)return;if(e.target.closest('.dtab'))open(el);else if(e.target.closest('.dx'))close()});
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&e.target.id!=='cin')close()});
+})();
+
+/* ============================== interactive tables: row/column highlight, pin, copy ============================== */
+const TG=new WeakMap(),TP=new WeakMap();
+function tgrid(t){
+ if(TG.has(t))return TG.get(t);
+ const cells=[],occ=[];
+ [...t.rows].forEach((row,r)=>{occ[r]=occ[r]||[];let c=0;
+  [...row.cells].forEach(cell=>{while(occ[r][c])c++;const rs=cell.rowSpan||1,cs=cell.colSpan||1;
+   for(let i=0;i<rs;i++){occ[r+i]=occ[r+i]||[];for(let j=0;j<cs;j++)occ[r+i][c+j]=true}
+   cells.push({el:cell,r0:r,r1:r+rs-1,c0:c,c1:c+cs-1});c+=cs})});
+ TG.set(t,cells);return cells}
+function tmark(t,info,cls,xcls){
+ tgrid(t).forEach(o=>{
+  const hit=!(o.r1<info.r0||o.r0>info.r1)||!(o.c1<info.c0||o.c0>info.c1);
+  if(hit)o.el.classList.add(cls);if(o.el===info.el)o.el.classList.add(xcls)})}
+function tclear(t,cls,xcls){tgrid(t).forEach(o=>o.el.classList.remove(cls,xcls))}
+function tinfo(t,el){return tgrid(t).find(o=>o.el===el)}
+function tcellValue(el){
+ const t=el.innerText.replace(/\s+/g,' ').trim();
+ const m=t.match(/^([+−-]?[\d,]*\.?\d+)\s*(?:A|kA|V|VA|kVA|kW|kvar|%|kcmil|kHz|Hz)?$/);
+ return m?m[1].replace(/,/g,'').replace('−','-'):t}
+let _toastT;
+function toast(msg){
+ let el=$('#toast');if(!el){el=document.createElement('div');el.id='toast';el.setAttribute('role','status');document.body.appendChild(el)}
+ el.textContent=msg;el.classList.add('on');clearTimeout(_toastT);_toastT=setTimeout(()=>el.classList.remove('on'),1600)}
+function copyText(txt){
+ const fallback=()=>{const ta=document.createElement('textarea');ta.value=txt;ta.style.cssText='position:fixed;opacity:0;top:0;left:0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch(e){}ta.remove()};
+ try{if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(txt).catch(fallback);else fallback()}catch(e){fallback()}}
+(function(){
+ const sel='.tbl table, .dbody table';
+ let hov=null;
+ const cellOf=e=>{if(e.target.closest&&e.target.closest('input,select,button,a,label,summary'))return null;const c=e.target.closest&&e.target.closest('td,th');if(!c)return null;const t=c.closest('table');return t&&t.matches(sel)&&!t.querySelector('input,select,button')?{c,t}:null};
+ document.addEventListener('mouseover',e=>{
+  const h=cellOf(e);
+  if(hov&&(!h||h.t!==hov)){tclear(hov,'hl','hx');hov=null}
+  if(!h)return;hov=h.t;tclear(h.t,'hl','hx');const info=tinfo(h.t,h.c);if(info)tmark(h.t,info,'hl','hx')});
+ document.addEventListener('mouseleave',()=>{if(hov){tclear(hov,'hl','hx');hov=null}});
+ document.addEventListener('click',e=>{
+  const h=cellOf(e);if(!h)return;
+  if(window.getSelection&&String(window.getSelection()).length>1)return; // user is selecting text
+  const info=tinfo(h.t,h.c);if(!info)return;
+  const same=TP.get(h.t)===h.c;
+  tclear(h.t,'pin','pinx');
+  if(same)TP.delete(h.t);else{TP.set(h.t,h.c);tmark(h.t,info,'pin','pinx')}
+  const v=tcellValue(h.c);copyText(v);toast('Copied: '+v+(same?'  (highlight cleared)':''))});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'){$$(sel).forEach(t=>{if(TP.has(t)){tclear(t,'pin','pinx');TP.delete(t)}})}});
 })();
 
 updateScore();render();
