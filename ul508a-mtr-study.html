@@ -59,6 +59,9 @@ canvas{width:100%;display:block;background:var(--card);border:1px solid var(--li
 @media(max-width:560px){body{font-size:15px}.card{padding:12px}}
 .les{border:1px solid var(--line);border-radius:10px;margin:8px 0;background:var(--card)}.les summary{cursor:pointer;padding:9px 12px;font-weight:600}.les .lb{padding:2px 14px 12px}.les p{margin:6px 0}.les ul,.les ol{margin:6px 0;padding-left:22px}
 code[data-tex="1"]{background:none;padding:0;font-family:inherit;font-size:1.05em}.katex{font-size:1.08em}.steps li,.les li{margin:9px 0;line-height:1.75}.steps li:has(.katex-html){line-height:1.95}code[data-tex="1"]{display:inline-block;vertical-align:middle;max-width:100%;overflow-x:auto;overflow-y:hidden}.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.chip{background:var(--acc2);color:var(--acc);border-radius:99px;padding:2px 10px;font-weight:600;font-size:.9rem}.chip.fuse{background:var(--warnbg);color:var(--warn)}.steps code[data-tex="1"] .katex{font-size:1.12em}
+.svgwrap{overflow-x:auto;margin:10px 0;border:1px solid var(--line);border-radius:8px;background:var(--card);padding:6px}
+.sv text{font:9.5px system-ui,sans-serif;fill:var(--ink);stroke:none}.sv .k{fill:var(--bad);font-weight:700}.sv .g{fill:var(--ph-c);font-size:14px;font-weight:700}.sv .sm{font-size:8px;fill:var(--mut)}
+.choices{margin:8px 0}.choices label{display:block;padding:6px 10px;border:1px solid var(--line);border-radius:8px;margin:4px 0;cursor:pointer}.choices label:hover{border-color:var(--acc)}.choices .row{margin-top:6px}
 </style>
 </head>
 <body>
@@ -103,6 +106,7 @@ const wireFor=(amps,isHigh)=>{const t=(isHigh?W75:W60).find(w=>w[1]>=amps-1e-9);
 const TOPICS={scope:'Scope & Marking',motor:'Motor Circuits',sccr:'SCCR & Fault Current',xfmr:'Transformers (Power & Control)',upsize:'Sizing Up & Feeders',xcur:'Transformer Current (Single- & 3-Phase)',wire:'Conductors & Grounding',math:'Electrical Math',ctrl:'Controls & Protection'};
 const SRC_L='Larson Electronics, “How to Calculate Transformer Primary and Secondary Current” (Jan 8, 2026)';
 const SRC_I='Industrial Monitor Direct, “480V to 120V Transformer Ampacity Calculation for Test Stations” (Apr 13, 2026)';
+const SRC_W='SCCR worksheets and test-taker notes (supplied)';
 const T450='<div class="tbl"><table><tr><th>Protection method</th><th>Primary device max</th><th>Secondary device max</th></tr><tr><td rowspan="3">Primary only</td><td>I<sub>p</sub> ≥ 9 A: <b>125 %</b> (next std size up allowed)</td><td>none required by the table</td></tr><tr><td>2 A ≤ I<sub>p</sub> &lt; 9 A: <b>167 %</b></td><td>–</td></tr><tr><td>I<sub>p</sub> &lt; 2 A: <b>300 %</b></td><td>–</td></tr><tr><td rowspan="2">Primary + secondary</td><td><b>250 %</b></td><td>I<sub>s</sub> ≥ 9 A: <b>125 %</b> (next std size up allowed)</td></tr><tr><td><b>250 %</b></td><td>I<sub>s</sub> &lt; 9 A: <b>167 %</b></td></tr></table></div>';
 const Q=[
 /* ---------- SCOPE ---------- */
@@ -656,6 +660,48 @@ const Q=[
 {id:'rd-6',t:'upsize',d:2,q:'Decide <b>UP or DOWN</b>: (a) 52.5 A max motor inverse-time breaker (b) 225.5 A transformer primary with secondary protection (c) 112.8 A primary-only, I<sub>p</sub> ≥ 9 A (d) minimum conductor ampacity 42.5 A (e) 5.85 A primary-only transformer fuse, I<sub>p</sub> &lt; 2 A (f) minimum disconnect rating 43.7 A (g) 308 A (400 % sized-up motor breaker) (h) transformer kVA required 49.3 kVA',
  a:'(a) <b>UP</b> → 60 A (b) <b>DOWN</b> → 225 A (c) <b>UP</b> allowed → 125 A (110 A also fine) (d) <b>UP</b> → 6 AWG (55 A) (e) <b>DOWN</b> → 5 A (the Eaton guide rounds to 6 A) (f) <b>UP</b> → next available rating, e.g. 50/60 A (g) <b>DOWN</b> → 300 A (h) <b>UP</b> → 50 kVA',
  why:'Ask first: is the calculated value a <b>minimum</b> or a <b>maximum</b>? Minimum → UP. Maximum → DOWN, except where the rule expressly permits the next size up (motor branch device, and the 125 % transformer rows).'},
+/* ---------- SCCR WORKSHEETS (from the supplied worksheets) + evaluation-method notes ---------- */
+{id:'sn-1',t:'sccr',d:3,src:SRC_W,q:'What is the order of evaluation when a panel has current-limiting devices (CLDs) and transformers in its branches? (test-taker notes on Supplement SB)',
+ a:'<ol><li><b>Evaluate each branch for its lowest kA first</b> – even if the branch OCPD is a CLD, go all the way down the branch. Don’t decide on any upgrade yet.</li><li><b>Transformer in a branch:</b> look up the transformer secondary let-through (Table SB4.3, single-phase / 3-phase). Components downstream of the transformer with a kA <u>greater than</u> that Ip can be <u>disregarded</u> in the branch calculation. This works for transformers only, <u>not</u> for a branch OCPD.</li><li><b>Compare with the mains feed:</b> if the feeder device is a CLD, find its let-through (Table SB4.2). A branch whose OCPD is also a CLD, with a kA greater than the feeder Ip, may be upgraded – evaluated at the <b>lesser</b> of the feeder CLD kA and the branch OCPD kA. If the branch OCPD is <u>not</u> a CLD, evaluate the feeder kA against the branch kA.</li></ol>',
+ why:'These are a test-taker’s notes (Reddit r/PLC), who also reports the UL instructor calling SB4.3.3 “very poorly written and convoluted” and said UL hopes to clarify it. Peak let-through (I<sub>p</sub>) only applies when the feeder OCPD is a CLD – a plain disconnect switch is <b>not</b> an OCPD. <span class="note">Verify the wording against Supplement SB in your edition.</span>'},
+{id:'sn-2',t:'sccr',d:3,src:SRC_W,q:'A branch circuit has a 65 kA breaker, a 480/240 V transformer, then a 25 kA contactor and a 2 kA GFCI. Which components can be disregarded in the branch SCCR calculation and why?',
+ a:'Everything <b>downstream of the transformer</b> whose kA is greater than the transformer’s <b>secondary let-through I<sub>p</sub></b> (Table SB4.3) – here the 25 kA contactor and the 2 kA GFCI as the worksheets treat them. The transformer limits the fault current reaching them. The branch is evaluated at the <b>breaker (65 kA)</b> ahead of the transformer.',
+ why:'This allowance is for transformers only. It does not apply to a branch OCPD, a fuse or a breaker. In the worksheets BR7 (3 kVA 480/120 V) and BR8 (10 kVA 480/240 V) are both controlled by their 65 kA breakers; the 2 kA GFCI and 25 kA contactor are not the weakest link.'},
+{id:'sn-3',t:'sccr',d:2,src:SRC_W,q:'Is a plain disconnect switch (e.g. DISC1 at 100 kA) an OCPD when evaluating panel SCCR with peak let-through? What do you do with it?',
+ a:'<b>No</b> – a disconnect switch that is not an overcurrent protective device does not limit the fault current. You <b>evaluate the branches</b> underneath it individually; the switch’s own rating (100 kA) is just one more component (a potential weakest link).',
+ why:'In Worksheet 1 the switch is 100 kA but the answer is 65 kA because of the 65 kA branch breakers, with nothing upstream to protect them.'},
+{id:'sn-4',t:'sccr',d:3,src:SRC_W,q:'A Class CC fuse has a peak let-through of 3 kA (the worksheet uses the 15 A row because the table has no 10 A row). The contactor and overload relay downstream are rated 5 kA. Are they protected, and what controls the branch?',
+ a:'<b>Yes.</b> 5 kA ≥ 3 kA let-through, so the contactor and overload are protected. The branch is controlled by the <b>fuse’s own 200 kA</b> rating, not by the 5 kA components.',
+ steps:['Peak let-through of the branch CLD: <code>I<sub>p</sub> = 3 kA</code>.','Downstream components: <code>5 kA ≥ 3 kA</code> ✔ – they only see 3 kA.','Branch kA = the CLD’s interrupting rating: <code>200 kA</code>.'],
+ why:'Rule: every component downstream of a CLD must have a kA ≥ the CLD’s peak let-through (I<sub>p</sub>). If it is smaller, the component becomes the weak link. The “no 10 A in the chart so use 15 A” step in the worksheet means: when the exact ampere rating is not tabulated, use the next higher row (more let-through = conservative).'},
+{id:'ws-1',t:'sccr',d:3,src:SRC_W,qfig:'ws1',choices:['2 kA','30 kA','65 kA','100 kA'],correct:2,q:'<b>Worksheet 1 – Panel SCCR.</b> DISC1 is a plain disconnect switch (100 kA) feeding nine branches (BR1–BR9). Assume 100 kA available. Let-through values from Table SB4.2 as used in the worksheet: Class J 225 A = 24 kA; Class CC 30 A = 7.5 kA; Class CC 10/15 A = 3 kA. What is the panel SCCR?',
+ a:'<b>65 kA</b> – the 65 kA breakers CB5 and CB6 (BR5 and BR6) control: nothing upstream protects them and they cannot handle 100 kA.',
+ steps:['<b>DISC1</b> – not an OCPD → evaluate the branches below it.','<b>BR1</b> Class J: I<sub>p</sub> = 24 kA; CR1 and OL1 at 65 kA ≥ 24 kA → the fuse controls: <code>200 kA</code>.','<b>BR2</b> Class CC 30 A: I<sub>p</sub> = 7.5 kA; CR2/OL2 65 kA ≥ 7.5 → <code>200 kA</code>.','<b>BR3</b> Class CC 10 A (use the 15 A row, I<sub>p</sub> = 3 kA): VFD 200 kA, PDB 65 kA, CR/OL 65 kA ≥ 3 → <code>200 kA</code>.','<b>BR4</b> Class CC 15 A: I<sub>p</sub> = 3 kA; PDB 65, CR4 30, OL 65 ≥ 3 → <code>200 kA</code>.','<b>BR5, BR6</b> – breakers CB5, CB6 at <code>65 kA</code> (no CLD to protect them).','<b>BR7, BR8</b> – breakers 65 kA; the transformer limits fault current, so the downstream GFCI (2 kA), 25 kA contactor etc. are not affected → <code>65 kA</code>.','<b>BR9</b> Class CC 10 A, I<sub>p</sub> = 3 kA, power supply isolates the 24 V side → <code>200 kA</code>.','Panel SCCR = lowest controlling value = <code>min(100, 200, 200, 200, 200, 65, 65, 65, 65, 200) = 65 kA</code>.'],
+ why:'A CLD protects only its own branch. The branches fed by plain breakers have no upstream CLD, so the breaker’s kA rating is the limit.'},
+{id:'ws-2',t:'sccr',d:3,src:SRC_W,qfig:'ws2',choices:['25 kA','65 kA','100 kA','200 kA'],correct:2,q:'<b>Worksheet 2 – Panel SCCR.</b> Same panel, but DISC1 now has <b>Class J 350 A fuses, 100 kA</b>, acting as feeder protection with a let-through of I<sub>p</sub> = 29 kA. PDB2 and PDB3 are 30 kA. What is the panel SCCR?',
+ a:'<b>100 kA</b> – the feeder Class J fuse controls because everything downstream is rated at or above its 29 kA let-through.',
+ steps:['The mains feeder is now an <b>OCPD and a CLD</b>: look up its peak let-through in Table SB4.2: <code>I<sub>p</sub> = 29 kA</code>.','<b>Branch components</b> must be ≥ 29 kA: CR/OL 65 and 30 kA ✔, PDB2 30 kA ✔, PDB3 30 kA ✔, VFD 200 kA ✔.','<b>Branch protectors</b> (CB5, CB6, CB7, CB8, and the branch fuses) are all ≥ 29 kA ✔.','Downstream of the transformers (XF7, XF8) the 2 kA GFCI and 25 kA contactor are disregarded.','All branches are protected by the feeder fuse → the controlling device is the feeder: <code>100 kA</code>.'],
+ why:'Compare with Worksheet 1: adding a CLD at the mains lifts the panel from 65 kA to 100 kA because the 65 kA breakers now only see 29 kA. The 30 kA PDBs are chosen just above the 29 kA let-through – that is the point of the exercise.'},
+{id:'ws-3',t:'sccr',d:3,src:SRC_W,qfig:'ws3',choices:['5 kA','30 kA','65 kA','100 kA'],correct:2,q:'<b>Worksheet 3 – Panel SCCR.</b> Same as Worksheet 1 (DISC1 is a plain 100 kA disconnect), but in BR4 the contactors and overload relays (CR4.1, OL4.1, CR4.2, OL4.2) are now <b>5 kA</b>. What is the panel SCCR?',
+ a:'<b>65 kA</b> – unchanged. The 5 kA parts in BR4 are protected by the Class CC fuse (I<sub>p</sub> = 3 kA &lt; 5 kA), so BR5/BR6 (65 kA) still control.',
+ steps:['BR4 Class CC 15 A: I<sub>p</sub> = 3 kA.','CR4/OL4 = 5 kA ≥ 3 kA ✔ → protected, so BR4 is controlled by the fuse: <code>200 kA</code>.','All other branches as in Worksheet 1.','Panel SCCR = <code>65 kA</code> (CB5/CB6).'],
+ why:'A low-kA component is acceptable when a CLD in its own branch cuts the let-through below its rating. If the let-through were higher than 5 kA, those parts would become the weak link.'},
+{id:'ws-4',t:'sccr',d:3,src:SRC_W,qfig:'ws4',choices:['5 kA','10 kA','65 kA','100 kA'],correct:1,q:'<b>Worksheet 4 – Panel SCCR.</b> Same as Worksheet 1 with these changes: PDB2 and PDB3 are 10 kA, OL3.1/OL3.2 are 5 kA, <b>CB6 is 10 kA</b>, and CB8 is 100 kA. DISC1 is a plain 100 kA disconnect. What is the panel SCCR?',
+ a:'<b>10 kA</b> – the 10 kA circuit breaker CB6 (60 A) controls; nothing upstream protects it.',
+ steps:['BR1–BR4: CLD let-through (24 / 7.5 / 3 / 3 kA) ≤ the 10 kA PDBs and 5 kA OL → each branch controlled by its fuse (200 kA).','BR5: CB5 = 65 kA. <b>BR6: CB6 = 10 kA</b> – a breaker, not a CLD, no feeder CLD → <code>10 kA</code>.','BR7: CB7 65 kA (transformer isolates the rest). BR8: CB8 100 kA, transformer limits the downstream 25 kA contactor. BR9: 200 kA.','Panel SCCR = <code>10 kA</code>.'],
+ why:'The worksheet text says “BR7” but the 10 kA breaker in the drawing is CB6 on BR6 – the answer is the same. One low-rated unprotected breaker sets the whole panel.'},
+{id:'ws-5',t:'sccr',d:3,src:SRC_W,qfig:'ws5',choices:['65 kA','130 kA','200 kA','225 A'],correct:2,q:'<b>Worksheet 5 – Branch circuit SCCR.</b> A Class J 225 A fuse (200 kA) feeds a line reactor, a 65 kA contactor and a 65 kA overload relay with a 100 hp, 480 V motor. The fuse’s let-through is 33 kA at 200 kA. What is the SCCR of this branch circuit?',
+ a:'<b>200 kA</b> – the Class J fuse controls.',
+ steps:['Class J fuse: I<sub>p</sub> = 33 kA at 200 kA available.','Downstream components must be ≥ I<sub>p</sub>: CR1 and OL1 are 65 kA ≥ 33 kA ✔ (the worksheet says “downstream devices must protect &gt; 35 kA”).','Branch SCCR = the fuse’s interrupting rating: <code>200 kA</code>.'],
+ why:'“225 A” is the fuse’s ampere rating – not a kA value – and 130 kA is a distractor. The CLD’s kA rating is the answer once the downstream parts exceed its let-through.'},
+{id:'ws-6',t:'sccr',d:3,src:SRC_W,qfig:'ws6',choices:['10 kVA','25 kA','65 kA','100 kA'],correct:3,q:'<b>Worksheet 6 – Branch circuit SCCR.</b> CB8 (45 A, 100 kA) feeds a 480/240 V 10 kVA transformer, then CB8.1 (40 A, 65 kA), CR8.1 (25 kA), OL8.1 (65 kA) and a 5 hp, 240 V motor. What is the SCCR of the branch?',
+ a:'<b>100 kA</b> – CB8 controls, because the transformer limits the fault current to the components behind it.',
+ steps:['Transformer in the branch → check its secondary let-through (Table SB4.3).','Components downstream of the transformer whose kA exceeds that I<sub>p</sub> can be disregarded: CB8.1 (65 kA), CR8.1 (25 kA), OL8.1 (65 kA).','Remaining device in front of the transformer: CB8 = <code>100 kA</code>.'],
+ why:'“10 kVA” is just the transformer rating (a distractor). The transformer allowance applies to <b>transformers only</b>, not to a branch breaker or fuse.'},
+{id:'ws-7',t:'sccr',d:3,src:SRC_W,qfig:'ws7',choices:['25 kA','30 kA','65 kA','100 kA'],correct:3,q:'<b>Worksheet 7 – Panel SCCR.</b> Same as Worksheet 2, with a 100 kA power-distribution block (PDB1) after the Class J 350 A feeder fuses (100 kA, I<sub>p</sub> = 29 kA). All branch protectors are ≥ 29 kA. What is the panel SCCR?',
+ a:'<b>100 kA</b> – the mains feeder (Class J, 100 kA with I<sub>p</sub> = 29 kA) controls; the other OCPDs are current-limiting or ≥ 29 kA so they are protected.',
+ steps:['Feeder CLD I<sub>p</sub> = 29 kA (Table SB4.2).','PDB1 (100 kA) sits on the line side of the branches – it is rated 100 kA ≥ the panel value.','All branch OCPDs and components are ≥ 29 kA (PDB2, PDB3 and CR4: 30 kA).','Controlling device = the feeder fuse: <code>100 kA</code>.'],
+ why:'Using the mains feed as a CLD is the quickest way to raise the whole panel’s SCCR: every branch only sees the feeder’s let-through.'},
 /* ---------- WIRE ---------- */
 {id:'wire-1',t:'wire',d:2,q:'What is the smallest copper equipment grounding conductor (AWG) for circuits protected by a <b>100 A</b> breaker?',
  num:{v:8,tol:0.001,u:'AWG'},
@@ -776,7 +822,110 @@ function figXf(mode){
  <circle cx="215" cy="47" r="22" fill="var(--card)" stroke="var(--ink)" stroke-width="2"/><circle cx="245" cy="47" r="22" fill="var(--card)" stroke="var(--ink)" stroke-width="2"/><text x="230" y="90" font-size="11" text-anchor="middle">Transformer</text>
  ${box(300,120,'Secondary device',both?'125 % (≥9 A) / 167 %':'(not used)',both)}
  <rect x="470" y="32" width="70" height="30" rx="6" fill="var(--code)" stroke="var(--line)"/><text x="505" y="52" font-size="11" text-anchor="middle">Load</text></svg>`}
-const FIGS={xf1:()=>figXf(1),xf2:()=>figXf(2),pct:figPct,bars1:()=>barSvg([['Bus bar',50],['Fuse holder',10],['Terminal block',10],['Disconnect switch',5],['Starter + overload',5]]),
+/* ============================== SCCR worksheet schematics (SVG) ============================== */
+/* Redrawn from the SCCR worksheets. Red numbers are the component SCCR / interrupting ratings in kA. */
+const SVX={
+ ink:'stroke="var(--ink)" fill="none" stroke-width="1.3"',
+ txt:(x,y,s,c,a)=>`<text x="${x}" y="${y}" text-anchor="${a||'middle'}"${c?` class="${c}"`:''}>${s}</text>`,
+ lines:(x1,y,x2,n)=>Array.from({length:n||3},(_,i)=>`<line x1="${x1}" y1="${y+i*9}" x2="${x2}" y2="${y+i*9}"/>`).join(''),
+ ph:(y,f,n)=>Array.from({length:n||3},(_,i)=>f(y+i*9,i)).join(''),
+ // device symbols, drawn on 3 (or n) conductors starting at y
+ fuse:(x,y,n)=>SVX.ph(y,yy=>`<rect x="${x}" y="${yy-3}" width="22" height="6" fill="var(--card)" stroke="var(--ink)" stroke-width="1.2"/>`,n),
+ cb:(x,y,n)=>SVX.ph(y,yy=>`<circle cx="${x+2}" cy="${yy}" r="1.8" fill="var(--ink)"/><path d="M${x+2},${yy} a6,6 0 0 1 12,-1" ${SVX.ink}/>`,n),
+ cr:(x,y,n)=>SVX.ph(y,yy=>`<line x1="${x}" y1="${yy-4}" x2="${x}" y2="${yy+4}" stroke="var(--ink)" stroke-width="1.6"/><line x1="${x+5}" y1="${yy-4}" x2="${x+5}" y2="${yy+4}" stroke="var(--ink)" stroke-width="1.6"/>`,n),
+ ol:(x,y,n)=>SVX.ph(y,yy=>`<path d="M${x},${yy} q0,-6 5,-6 q5,0 5,6" ${SVX.ink}/>`,n),
+ lr:(x,y,n)=>SVX.ph(y,yy=>`<polyline points="${x},${yy} ${x+4},${yy-4} ${x+8},${yy+4} ${x+12},${yy-4} ${x+16},${yy+4} ${x+20},${yy}" ${SVX.ink}/>`,n),
+ xf:(x,y,n)=>SVX.ph(y,yy=>`<circle cx="${x}" cy="${yy}" r="4.5" fill="var(--card)" stroke="var(--ink)"/><circle cx="${x+7}" cy="${yy}" r="4.5" fill="var(--card)" stroke="var(--ink)"/>`,n),
+ motor:(x,y)=>`<circle cx="${x}" cy="${y+9}" r="12" fill="var(--card)" stroke="var(--ink)" stroke-width="1.4"/>`+SVX.txt(x,y+13,'~','',''),
+ // label block above a device: name, rating, red kA
+ lab:(cx,y,name,amps,ka)=>SVX.txt(cx,y-31,name)+(amps?SVX.txt(cx,y-21,amps):'')+(ka!=null?SVX.txt(cx,y-10,ka+' kA','k'):''),
+ dev:(sym,x,y,name,amps,ka,n)=>SVX[sym](x,y,n)+SVX.lab(x+11,y,name,amps,ka)
+};
+function wsMerge(a,b){const o=JSON.parse(JSON.stringify(a));for(const k in b){o[k]=(b[k]&&typeof b[k]==='object')?Object.assign({},o[k],b[k]):b[k]}return o}
+const WS_BASE={disc:100,feeder:false,pdb1:false,
+ br1:{fu:200,cr:65,ol:65},br2:{fu:200,cr:65,ol:65},br3:{fu:200,vfd:200,pdb:65,cr:65,ol:65},br4:{fu:200,pdb:65,cr:30,ol:65},
+ cb5:65,cb6:65,br7:{cb:65,fu:65,gfci:2},br8:{cb:65,cb1:65,cr:25,ol:65},br9:{fu:200}};
+function wsMotorLab(x,y,a,b,c){return SVX.txt(x+16,y+4,a,'','start')+SVX.txt(x+16,y+14,b,'','start')+SVX.txt(x+16,y+24,c,'','start')}
+function wsPanel(over){
+ const o=wsMerge(WS_BASE,over||{});const X=SVX;let s='';
+ const lb=(x,y,t)=>X.txt(x,y,t,'g');
+ // ---- buses
+ const lbus=[30,40,50],rbus=[500,510,520];
+ // feeder / disconnect
+ if(o.pdb1)s+=`<rect x="20" y="64" width="62" height="168" rx="3" fill="#f2dc3d" stroke="var(--ink)"/>`+X.txt(51,172,'PDB1','k')+X.txt(51,186,o.feeder?'100 kA':o.disc+' kA','k');
+ s+=lbus.map(x=>`<line x1="${x}" y1="52" x2="${x}" y2="${o.pdb1?64:662}"/>`).join('');
+ if(o.pdb1)s+=lbus.map(x=>`<line x1="${x}" y1="232" x2="${x}" y2="662"/>`).join('');
+ if(o.feeder){
+  s+=lbus.map(x=>`<rect x="${x-4}" y="20" width="8" height="26" fill="#d63031" stroke="var(--ink)"/>`).join('')+lbus.map(x=>`<line x1="${x}" y1="8" x2="${x}" y2="20"/><line x1="${x}" y1="46" x2="${x}" y2="52"/>`).join('');
+  s+=X.txt(74,18,'DISC1','','start')+X.txt(74,30,'100 kA','k','start')+X.txt(118,18,'Class J 350 A, 100 kA “FEEDER PROTECTION”','','start')+X.txt(118,31,'I<tspan baseline-shift="sub" font-size="7">p</tspan> × 10³ = 29 kA','k','start');
+  s+=X.txt(118,43,'Branch components ≥ feeder Ip · branch protectors and feeder devices ≥ SCCR','sm','start');
+ }else{
+  s+=lbus.map(x=>`<circle cx="${x}" cy="30" r="1.8" fill="var(--ink)"/><line x1="${x}" y1="8" x2="${x-5}" y2="28"/><line x1="${x-5}" y1="28" x2="${x}" y2="30"/>`).join('')+lbus.map(x=>`<line x1="${x}" y1="30" x2="${x}" y2="52"/>`).join('');
+  s+=X.txt(66,22,'DISC1','','start')+X.txt(66,34,o.disc+' kA','k','start');
+ }
+ s+=X.txt(30,5,'480 VAC','','start');
+ // bus taps for a row at y (3 lines from bus to x)
+ const tap=(y,x2)=>lbus.map((bx,i)=>`<line x1="${bx}" y1="${y+i*9}" x2="${x2}" y2="${y+i*9}"/><circle cx="${bx}" cy="${y+i*9}" r="1.6" fill="var(--ink)"/>`).join('');
+ // ---- BR1
+ let y=110,b=o.br1;
+ s+=tap(y,314)+X.dev('fuse',100,y,'FU1 Class J','225 A',b.fu)+X.dev('lr',150,y,'LR1','',null)+X.dev('cr',205,y,'CR1','',b.cr)+X.dev('ol',250,y,'OL1','',b.ol)+X.motor(326,y)+wsMotorLab(326,y,'MTR1','480V','100HP')+lb(405,y+14,'BR 1');
+ // ---- BR2
+ y=210;b=o.br2;
+ s+=tap(y,314)+X.dev('fuse',100,y,'FU2 Class CC','30 A',b.fu)+X.dev('cr',205,y,'CR2','',b.cr)+X.dev('ol',250,y,'OL2','',b.ol)+X.motor(326,y)+wsMotorLab(326,y,'MTR2','480V','7.5HP')+lb(405,y+14,'BR 2');
+ // ---- BR3 (fuse, VFD, PDB, two motors)
+ y=310;b=o.br3;
+ s+=tap(y,150)+X.dev('fuse',88,y,'FU3 Class CC','10 A',b.fu);
+ s+=`<rect x="150" y="${y-10}" width="52" height="56" fill="var(--card)" stroke="var(--ink)" stroke-width="1.8"/>`+X.txt(176,y+4,'VFD3')+X.txt(176,y+14,'2HP')+X.txt(176,y+28,'Out:')+X.txt(176,y+38,'4.7A')+X.txt(176,y+62,b.vfd+' kA','k');
+ s+=X.lines(202,y,212)+`<rect x="212" y="${y-6}" width="12" height="38" fill="var(--card)" stroke="var(--ink)"/><text x="218" y="${y+13}" transform="rotate(-90 218 ${y+13})" text-anchor="middle" class="sm">PDB2</text>`+X.txt(218,y-12,b.pdb+' kA','k');
+ s+=X.lines(224,y,235);
+ const y3b=y+96;
+ s+=[0,1,2].map(i=>`<polyline points="${224+i*6},${y+i*9} ${228+i*6},${y+i*9} ${228+i*6},${y3b+i*9} ${235},${y3b+i*9}" ${X.ink}/>`).join('');
+ [y,y3b].forEach((yy,k)=>{
+  s+=X.lines(235,yy,244)+`<rect x="242" y="${yy-5}" width="86" height="33" fill="none" stroke="var(--ink)" stroke-dasharray="3 3" stroke-width="1"/>`+X.dev('cr',250,yy,'CR3.'+(k+1),'',b.cr)+X.dev('ol',290,yy,'OL3.'+(k+1),'',b.ol)+X.lines(300,yy,328)+X.motor(340,yy)+wsMotorLab(340,yy,'MTR3.'+(k+1),'480V','1HP');
+ });
+ s+=lb(405,y+14,'BR 3');
+ // ---- BR4 (fuse, PDB, two motors)
+ y=492;b=o.br4;
+ s+=tap(y,134)+X.dev('fuse',88,y,'FU4 Class CC','15 A',b.fu);
+ s+=`<rect x="134" y="${y-6}" width="12" height="38" fill="var(--card)" stroke="var(--ink)"/><text x="140" y="${y+13}" transform="rotate(-90 140 ${y+13})" text-anchor="middle" class="sm">PDB3</text>`+X.txt(140,y-10,b.pdb+' kA','k');
+ s+=X.lines(146,y,170);
+ const y4b=y+96;
+ s+=[0,1,2].map(i=>`<polyline points="${146+i*6},${y+i*9} ${150+i*6},${y+i*9} ${150+i*6},${y4b+i*9} 170,${y4b+i*9}" ${X.ink}/>`).join('');
+ [y,y4b].forEach((yy,k)=>{
+  s+=X.lines(170,yy,180)+X.dev('cr',180,yy,'CR4.'+(k+1),'',b.cr)+X.dev('ol',225,yy,'OL4.'+(k+1),'',b.ol)+X.lines(235,yy,314)+X.motor(326,yy)+wsMotorLab(326,yy,'MTR4.'+(k+1),'480V',k?'3HP':'5HP');
+ });
+ s+=lb(405,y+14,'BR 4');
+ // ---- right side
+ s+=X.txt(500,52,'480 VAC cont’d','','start')+rbus.map(x=>`<line x1="${x}" y1="60" x2="${x}" y2="662"/>`).join('');
+ const rtap=(y,x2,n)=>rbus.slice(0,n||3).map((bx,i)=>`<line x1="${bx}" y1="${y+i*9}" x2="${x2}" y2="${y+i*9}"/><circle cx="${bx}" cy="${y+i*9}" r="1.6" fill="var(--ink)"/>`).join('');
+ // BR5
+ y=110;
+ s+=rtap(y,665)+X.dev('cb',560,y,'CB5','50 A',o.cb5)+`<polygon points="665,${y} 665,${y+18} 695,${y+9}" ${X.ink} fill="var(--card)"/>`+`<line x1="665" y1="${y+9}" x2="665" y2="${y+9}"/>`+X.txt(704,y+2,'HTR5','','start')+X.txt(704,y+12,'480V','','start')+X.txt(704,y+22,'30kW','','start')+lb(890,y+14,'BR 5');
+ // BR6 (2-pole heater)
+ y=210;
+ s+=rtap(y,640,2)+X.dev('cb',560,y,'CB6','60 A',o.cb6,2)+`<polyline points="640,${y} 650,${y} 653,${y-5} 659,${y+5} 665,${y-5} 671,${y+5} 677,${y-5} 680,${y} 695,${y}" ${X.ink}/><polyline points="640,${y+9} 695,${y+9} 695,${y}" ${X.ink}/>`+X.txt(704,y+2,'HTR6','','start')+X.txt(704,y+12,'480V','','start')+X.txt(704,y+22,'20kW','','start')+lb(890,y+14,'BR 6');
+ // BR7: CB7, XF7 (480/120), FU7.1, GFCI
+ y=300;b=o.br7;
+ s+=rtap(y,600,2)+X.dev('cb',560,y,'CB7','10 A',b.cb,2)+X.xf(612,y,2)+X.txt(616,y-31,'XF7')+X.txt(616,y-21,'480/120V')+X.txt(616,y-10,'3kVA')+`<line x1="624" y1="${y}" x2="688" y2="${y}"/><line x1="624" y1="${y+9}" x2="745" y2="${y+9}"/>`+X.dev('fuse',688,y,'FU7.1 Class CC','20 A',b.fu,1)+`<line x1="710" y1="${y}" x2="745" y2="${y}"/>`;
+ s+=`<rect x="745" y="${y-14}" width="34" height="44" fill="var(--card)" stroke="var(--ink)"/><circle cx="762" cy="${y-3}" r="5" fill="none" stroke="var(--ink)"/><circle cx="762" cy="${y+16}" r="5" fill="none" stroke="var(--ink)"/>`+X.txt(805,y-2,'GFCI','','start')+X.txt(805,y+8,'120V 16 A','','start')+X.txt(805,y+18,'Lighting','','start')+X.txt(762,y+44,b.gfci+' kA','k')+`<line x1="655" y1="${y+9}" x2="655" y2="${y+20}"/><line x1="647" y1="${y+20}" x2="663" y2="${y+20}"/><line x1="650" y1="${y+23}" x2="660" y2="${y+23}"/>`+lb(890,y+14,'BR 7');
+ // BR8: CB8, XF8 480/240, CB8.1, CR8.1, OL8.1, motor 240 V
+ y=410;b=o.br8;
+ s+=rtap(y,545)+X.dev('cb',545,y,'CB8','45 A',b.cb)+X.xf(612,y)+X.txt(616,y-31,'XF8')+X.txt(616,y-21,'480/240V')+X.txt(616,y-10,'10kVA')+X.lines(559,y,607)+X.lines(624,y,655)+X.dev('cb',655,y,'CB8.1','40 A',b.cb1)+X.lines(669,y,700)+X.dev('cr',700,y,'CR8.1','',b.cr)+X.dev('ol',740,y,'OL8.1','',b.ol)+X.lines(750,y,778)+X.motor(790,y)+wsMotorLab(790,y,'MTR8.1','240V','5HP')+lb(890,y+14,'BR 8');
+ // BR9: fuse + power supply
+ y=530;b=o.br9;
+ s+=rtap(y,560)+X.dev('fuse',560,y,'FU9 Class CC','10 A',b.fu)+X.lines(582,y,640)+`<rect x="640" y="${y-8}" width="62" height="44" fill="var(--card)" stroke="var(--ink)" stroke-width="1.8"/>`+X.txt(671,y+8,'Power')+X.txt(671,y+18,'Supply')+X.txt(671,y+28,'PS9')+X.txt(671,y-12,'Input: 1.0 A')+`<line x1="702" y1="${y+4}" x2="760" y2="${y+4}"/><line x1="702" y1="${y+22}" x2="760" y2="${y+22}"/>`+X.txt(712,y-4,'Wire: 12 AWG','','start')+X.txt(772,y+10,'24VDC','','start')+X.txt(772,y+20,'20A','','start')+lb(890,y+14,'BR 9');
+ return `<div class="svgwrap"><svg class="sv" viewBox="0 0 930 682" role="img" aria-label="Panel schematic with component SCCR ratings in kA" fill="none" stroke="var(--ink)" stroke-width="1.2" style="min-width:760px;width:100%">${s}</svg></div>`}
+// single-branch pictures (worksheets 5 and 6)
+function wsBranch1(){const X=SVX;let y=70,s='';
+ s+=[30,40,50].map((bx,i)=>`<line x1="${bx}" y1="${y+i*9}" x2="${bx}" y2="${y+60}"/><circle cx="${bx}" cy="${y+i*9}" r="1.6" fill="var(--ink)"/>`).join('')+[0,1,2].map(i=>`<line x1="${30+i*10}" y1="${y+i*9}" x2="${110+i*0}" y2="${y+i*9}"/>`).join('');
+ s+=X.dev('fuse',110,y,'FU1 Class J','225 A',200)+X.lines(132,y,170)+X.dev('lr',170,y,'LR1','',null)+X.lines(190,y,240)+X.dev('cr',240,y,'CR1','',65)+X.dev('ol',285,y,'OL1','',65)+X.lines(295,y,350)+X.motor(362,y)+wsMotorLab(362,y,'MTR1','480V','100HP');
+ return `<div class="svgwrap"><svg class="sv" viewBox="0 0 480 130" role="img" aria-label="Class J fuse branch circuit" fill="none" stroke="var(--ink)" stroke-width="1.2" style="min-width:420px;width:100%;max-width:560px">${s}</svg></div>`}
+function wsBranch8(){const X=SVX;let y=70,s='';
+ s+=[30,40,50].map((bx,i)=>`<line x1="${bx}" y1="${y+i*9}" x2="${bx}" y2="${y+60}"/><circle cx="${bx}" cy="${y+i*9}" r="1.6" fill="var(--ink)"/>`).join('')+[0,1,2].map(i=>`<line x1="${30+i*10}" y1="${y+i*9}" x2="95" y2="${y+i*9}"/>`).join('');
+ s+=X.dev('cb',95,y,'CB8','45 A',100)+X.lines(109,y,150)+X.xf(158,y)+X.txt(162,y-26,'XF8')+X.txt(162,y-17,'480/240V')+X.txt(162,y-8,'10kVA')+X.lines(170,y,215)+X.dev('cb',215,y,'CB8.1','40 A',65)+X.lines(229,y,262)+X.dev('cr',262,y,'CR8.1','',25)+X.dev('ol',305,y,'OL8.1','',65)+X.lines(315,y,355)+X.motor(367,y)+wsMotorLab(367,y,'MTR8.1','240V','5HP');
+ return `<div class="svgwrap"><svg class="sv" viewBox="0 0 480 130" role="img" aria-label="Branch circuit with a transformer" fill="none" stroke="var(--ink)" stroke-width="1.2" style="min-width:420px;width:100%;max-width:560px">${s}</svg></div>`}
+
+const FIGS={ws1:()=>wsPanel({}),ws2:()=>wsPanel({feeder:true,br3:{pdb:30},br4:{pdb:30}}),ws3:()=>wsPanel({br4:{cr:5,ol:5}}),ws4:()=>wsPanel({br3:{pdb:10,ol:5},br4:{pdb:10},cb6:10,br8:{cb:100}}),ws5:wsBranch1,ws6:wsBranch8,ws7:()=>wsPanel({feeder:true,pdb1:true,br3:{pdb:30},br4:{pdb:30}}),xf1:()=>figXf(1),xf2:()=>figXf(2),pct:figPct,bars1:()=>barSvg([['Bus bar',50],['Fuse holder',10],['Terminal block',10],['Disconnect switch',5],['Starter + overload',5]]),
  bars2:()=>barSvg([['Bus bar',50],['Fuse holder',10],['Terminal block',10],['Class J fuse (IR)',200],['65 kA combination',65]]),tri:figTri};
 
 /* ============================== question cards ============================== */
@@ -789,6 +938,8 @@ function cardHTML(q,i,opts={}){
   <div class="row"><span class="tag">${TOPICS[q.t]}</span><span class="tag d">${'●'.repeat(q.d)}${'○'.repeat(3-q.d)}</span>${st?`<span class="tag ${st==='got'?'':'d'}">${st==='got'?'✓ knew it':'✗ review'}</span>`:''}
    ${q.sim?`<button class="btn sm" data-sim="${q.sim}">Try in simulator →</button>`:''}</div>
   <div class="q">${opts.n!=null?`Q${opts.n}. `:''}${q.q}</div>${q.src?`<div class="note">Source: ${q.src}</div>`:''}
+  ${q.qfig?FIGS[q.qfig]():''}
+  ${q.choices?`<div class="choices">${q.choices.map((c,i)=>`<label><input type="radio" name="c_${q.id}" value="${i}"> <b>${String.fromCharCode(65+i)}.</b> ${c}</label>`).join('')}<div class="row"><button class="btn sm chkc">Check</button><span class="res"></span></div></div>`:''}
   ${q.num?`<div class="row"><label>Your answer (${q.num.u}): <input type="number" step="any" class="guess" style="width:110px"></label><button class="btn sm chk">Check</button><span class="res"></span></div>`:''}
   <div class="row" style="margin-top:8px"><button class="btn pri sm rev">Show answer</button></div>
   <div class="reveal hide">
@@ -804,6 +955,9 @@ function wireCards(root,onMark){
   if(b.dataset.sim){go('sim',b.dataset.sim);return}
   const q=Q.find(x=>x.id===c.dataset.id);
   if(b.classList.contains('rev')){const r=$('.reveal',c);r.classList.toggle('hide');b.textContent=r.classList.contains('hide')?'Show answer':'Hide answer'}
+  else if(b.classList.contains('chkc')){const sel=$('input[name="c_'+q.id+'"]:checked',c),res=$('.res',c);
+   if(!sel){res.textContent='Pick an option first.';return}
+   res.innerHTML=(+sel.value===q.correct)?'<span class="ok">✓ Correct</span>':'<span class="bad">✗ Not quite – open the answer and steps</span>'}
   else if(b.classList.contains('chk')){const v=parseFloat($('.guess',c).value),res=$('.res',c);
    if(isNaN(v)){res.textContent='Enter a number first.';return}
    const ok=Math.abs(v-q.num.v)<=Math.abs(q.num.v)*q.num.tol+1e-9;
@@ -1135,7 +1289,11 @@ sccr:{title:'Short-Circuit Current Rating (SCCR)',sim:'sccr',blurb:'Weakest-link
  <tr><td>3</td><td>Replace the 10 kA breaker with a <b>65 kA</b> motor-protective breaker; upstream breaker 100 kA</td><td>65 kA parts</td><td><b>65 kA</b></td></tr></table></div>${barSvg([['Step 1 – drive',5],['Step 2 – mini-breaker',10],['Step 3 – 65 kA parts',65]])}
  <p>Use the <b>SCCR builder</b> simulator, which has these three panels as presets.</p>`)+
  D('5. Available fault current',`<p>From a transformer (infinite primary): <code>I<sub>FL</sub> = kVA×1000 ÷ (√3×V)</code>, <code>I<sub>sc</sub> = I<sub>FL</sub> ÷ %Z</code>. <i>150 kVA, 480 V, 3.5 %: 180.4 ÷ 0.035 = 5.16 kA → a 5 kA panel is inadequate.</i> Lower impedance → higher fault current. Conductor and source impedance lower it downstream.</p>`)+
- D('6. Ways to raise SCCR',`<ol><li>Higher-rated (marked) components.</li><li>Tested combinations / published combination ratings.</li><li>Current-limiting fuses or breakers in the feeder.</li><li>Higher-interrupting branch devices.</li><li>Reduce available current (higher-impedance transformer, line reactor) – changes the installation, not the panel.</li></ol>`)}
+D('6. Panels with current-limiting devices – worksheet method',`<p>Evaluation order (a test-taker’s notes on Supplement SB – SB4.3.3 is described by the UL instructor as convoluted):</p>
+ <ol><li><b>Evaluate each branch for its lowest kA</b>, all the way down, even if the branch OCPD is a CLD. No upgrades yet.</li><li><b>Transformer in the branch:</b> use its secondary let-through I<sub>p</sub> (Table SB4.3, 1-phase / 3-phase). Downstream components with kA &gt; that I<sub>p</sub> can be disregarded. <u>Transformers only</u> – not a branch OCPD.</li><li><b>Compare with the mains feed:</b> if it is a CLD, find its let-through (Table SB4.2). A CLD branch OCPD whose kA exceeds the feeder I<sub>p</sub> may be upgraded to the <b>lesser</b> of the feeder CLD and the branch OCPD ratings; a non-CLD branch OCPD is simply compared with the feeder kA.</li></ol>
+ <p><b>Key rules from the worksheets:</b></p><ul><li>A plain <b>disconnect switch</b> is not an OCPD → evaluate the branches beneath it.</li><li>A CLD protects its own branch: every component downstream must be ≥ the CLD’s <b>peak let-through (I<sub>p</sub>)</b>; then the branch kA = the CLD’s own rating (e.g. 200 kA).</li><li>A breaker that is not a CLD with nothing upstream controls its branch at its own kA (e.g. CB5/CB6 = 65 kA, or 10 kA).</li><li>A <b>feeder CLD</b> (e.g. Class J 350 A, 100 kA, I<sub>p</sub> = 29 kA) protects every branch whose OCPD and components are ≥ 29 kA → panel = 100 kA.</li><li>When the exact ampere rating isn’t in the let-through table, use the next higher row.</li></ul>
+ <div class="tbl"><table><tr><th>Let-through values used in the worksheets (Table SB4.2)</th><th>I<sub>p</sub></th></tr><tr><td>Class J 225 A (100 kA available)</td><td>24 kA</td></tr><tr><td>Class J 225 A (200 kA available)</td><td>33 kA</td></tr><tr><td>Class J 350 A, 100 kA</td><td>29 kA</td></tr><tr><td>Class CC 30 A</td><td>7.5 kA</td></tr><tr><td>Class CC 10 / 15 A</td><td>3 kA</td></tr></table></div><p class="note">Values as quoted in the worksheets – look up the real values in Table SB4.2 / SB4.3 of your edition.</p>`)+
+ D('7. Ways to raise SCCR',`<ol><li>Higher-rated (marked) components.</li><li>Tested combinations / published combination ratings.</li><li>Current-limiting fuses or breakers in the feeder.</li><li>Higher-interrupting branch devices.</li><li>Reduce available current (higher-impedance transformer, line reactor) – changes the installation, not the panel.</li></ol>`)}
 };
 function viewSection(key){
  const S=SECTIONS[key],m=$('#main'),qs=Q.filter(q=>q.sec===key);
@@ -1169,6 +1327,7 @@ const PARTS={
  D('Enclosure types (Eaton p. 72)',`<div class="tbl"><table><tr><th>Type</th><th>Use</th><th>Rough IP</th></tr><tr><td>1</td><td>Indoor, incidental contact, falling dirt</td><td>IP20</td></tr><tr><td>2</td><td>Indoor driptight</td><td>IP22</td></tr><tr><td>3 / 3S</td><td>Outdoor, dust-tight, rain-tight, sleet</td><td>IP55</td></tr><tr><td>3R</td><td>Outdoor rainproof, snow, sleet</td><td>IP24</td></tr><tr><td>3X / 3RX / 3SX</td><td>As 3 / 3R / 3S + corrosion resistance</td><td>IP55 / 24</td></tr><tr><td>4</td><td>Watertight, dusttight (hose-directed water)</td><td>IP66</td></tr><tr><td>4X</td><td>As 4 + corrosion resistance</td><td>IP66</td></tr><tr><td>5</td><td>Indoor driptight, dusttight</td><td>IP53</td></tr><tr><td>6</td><td>Temporarily submersible</td><td>IP67</td></tr><tr><td>12</td><td>Indoor, driptight, dusttight</td><td>IP54</td></tr><tr><td>13</td><td>Indoor, driptight, dusttight, oiltight</td><td>IP54</td></tr></table></div><p class="note">IP ratings are only a rough comparison; UL Types are third-party certified.</p>`)},
 4:{title:'Part 4 – Short-Circuit Current Ratings (SCCR)',covers:['Evaluating component SCCRs and calculating panel/branch-circuit SCCR using Supplement SB','Current-limiting devices (CLDs), let-through currents, and feeder vs. branch circuit coordination','Applying component marking rules and Table SB values'],
  notes:()=>D('Method',`<ol><li>Compile the SCCR of every power-circuit component (marked value, else the Supplement SB default).</li><li>Find the weakest link.</li><li>Raise it with <b>current-limiting devices in the feeder</b> or tested combinations.</li><li>Replace low-interrupting branch devices if needed.</li></ol><p>Feeder protective devices must have interrupting rating ≥ panel SCCR. <b>No series ratings</b> in UL 508A.</p>`,true)+
+ D('Worksheet method: CLDs and transformers',`<ol><li>Evaluate each branch to its lowest kA (don’t upgrade yet).</li><li>Transformer in the branch: components downstream with kA &gt; its secondary I<sub>p</sub> (Table SB4.3) can be disregarded (transformers only).</li><li>Feeder CLD: find I<sub>p</sub> (Table SB4.2); branches with OCPD and components ≥ I<sub>p</sub> are protected → panel = feeder CLD rating. A plain disconnect is not an OCPD.</li></ol><p class="note">See the SCCR section and the seven worksheets.</p>`)+
  D('Default values and markings',`<p>Bus bar 50 kA · fuse holder 10 kA · terminal block / PDB 10 kA · circuit breaker 5 kA · switch 5 kA · motor controller 5 kA · overload relay 5 kA. Combination markings (e.g. “65 kA with 100 A max breaker”) apply only with the stated protection. The panel marking is “<b>SCCR X kA @ voltage</b>”. Full lesson: <b>SCCR</b> section.</p><p class="note">Verify default values against Table SB4.1 in your edition.</p>`)}
 };
 function partCount(n){const qs=Q.filter(q=>q.part===n);return{n:qs.length,done:qs.filter(q=>prog[q.id]==='got').length}}
