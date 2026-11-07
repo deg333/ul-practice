@@ -98,13 +98,36 @@ body.calc-open #calc{transform:none}
 #toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,20px);background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:99px;font-weight:600;font-size:.92rem;opacity:0;pointer-events:none;transition:opacity .15s,transform .15s;z-index:60;box-shadow:0 4px 14px rgba(0,0,0,.3)}
 #toast.on{opacity:1;transform:translate(-50%,0)}
 #calc{overflow-y:auto}.chist{flex:1 0 150px}.chelp,.cvars,.cinwrap,.cchips,.cfoot,.chead{flex:0 0 auto}.chelp{max-height:260px}body.calc-open{padding-left:40px}
+
+:root{--paper:#fbfdf4;--grid:#c8dbe9;--tg:#2f6fd0;--tf:#e9a416;--te:#3da53d;--ts:#c2368f}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--paper:#15212c;--grid:#2a4156}}
+:root[data-theme=dark]{--paper:#15212c;--grid:#2a4156}
+#pad{position:fixed;top:0;right:0;bottom:0;width:440px;max-width:100vw;background:var(--card);border-left:1px solid var(--line);box-shadow:-6px 0 18px rgba(0,0,0,.18);transform:translateX(105%);transition:transform .2s ease,right .2s ease;z-index:29;display:flex;flex-direction:column;padding:10px 12px;gap:8px}
+body.pad-open #pad{transform:none}
+@media(min-width:760px){body.pad-open.calc-open #pad{right:340px}}
+@media(min-width:1180px){body.pad-open{padding-right:440px}body.calc-open.pad-open{padding-right:780px}#pad{box-shadow:none}}
+.phead{display:flex;align-items:center;gap:8px}.phead .note{flex:1}
+.pbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.pbar select{max-width:210px}.pbar label{display:flex;gap:4px;align-items:center}
+.ptitle{width:100%;font-weight:600}
+.pscroll{flex:1;overflow-y:auto;padding-right:2px}
+.psec{margin-bottom:10px}.pl{display:inline-block;padding:1px 12px;border-radius:99px 99px 0 0;font-weight:700;font-size:.78rem;color:#fff;letter-spacing:.04em;text-transform:uppercase}
+.pg{background:var(--tg)}.pf{background:var(--tf);color:#2b1d00}.pe{background:var(--te)}.ps{background:var(--ts)}
+.paper{display:block;width:100%;background-color:var(--paper);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:20px 20px;background-attachment:local;border:1px solid var(--grid);border-radius:0 6px 6px 6px;color:var(--ink)}
+textarea.paper{font:15px/20px ui-monospace,Menlo,Consolas,monospace;padding:0 6px;resize:vertical;min-height:42px;overflow-y:auto}
+.sol{min-height:100px;padding:4px 8px 8px}
+.step{display:flex;gap:6px;padding:6px 0;border-bottom:1px dashed var(--grid)}.sn{font-weight:700;color:var(--ts);min-width:20px}.sb{flex:1;min-width:0}
+.tl{overflow-x:auto;overflow-y:hidden;scrollbar-width:none;padding:1px 0}.tl::-webkit-scrollbar{display:none}.tl.res{font-weight:700}
+.perr{color:var(--bad);font-size:.85rem;margin:4px 0}
+.pans{margin-top:8px}.pans .ok2{border:2px solid var(--te);border-radius:8px;padding:4px 10px;margin:6px 0;background:var(--okbg);font-size:1.05rem;overflow-x:auto}.pans .nf{color:var(--warn);font-size:.85rem;margin:4px 0}
+.pchips{flex:0 0 auto}
+@media print{#pad{display:none}}
 </style>
 </head>
 <body>
 <header><div class="wrap">
  <div class="top"><h1>UL 508A MTR Exam Study Guide<small>Industrial Control Panels · Manufacturer Technical Representative</small></h1>
   <span id="score" class="note"></span>
-  <button class="btn sm" id="calcBtn" aria-pressed="false" title="Open calculator">🖩 Calculator</button><button class="btn sm" id="theme" title="Toggle dark / light">◐</button></div>
+  <button class="btn sm" id="padBtn" aria-pressed="false" title="Open scratch pad">📝 Scratch pad</button><button class="btn sm" id="calcBtn" aria-pressed="false" title="Open calculator">🖩 Calculator</button><button class="btn sm" id="theme" title="Toggle dark / light">◐</button></div>
  <nav id="nav"></nav>
 </div></header>
 <main class="wrap" id="main"></main>
@@ -141,6 +164,23 @@ body.calc-open #calc{transform:none}
   <p class="note" style="margin:8px 0 4px">Results are in watts. Power factor is cos θ: give it directly (<code class="plain">0.8</code>) or as <code class="plain">cos(36.87)</code> (degrees). Formulas are as printed in the source table; for a purely resistive load use pf = 1.</p>
   <div class="cex" data-ex="ac3_l(480,30,0.8); ans/1000">3-phase: 480 V, 30 A, pf 0.8 → W, then kW</div></details>
  <div class="cfoot"><button class="btn sm" id="cclr">Clear history</button><button class="btn sm" id="cclrv">Clear variables</button></div>
+</aside>
+<aside id="pad" aria-label="Scratch pad" aria-hidden="true">
+ <div class="phead"><b>Scratch pad</b><span class="note">Given · Find · Equations · Solution</span><button class="btn sm" id="pclose" aria-label="Close scratch pad">✕</button></div>
+ <div class="pbar"><select id="pex" aria-label="Load an example"></select><label>Decimals <select id="pdec"><option value="auto">auto</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label><button class="btn sm" id="pcopy">Copy</button><button class="btn sm" id="pclear">Clear</button></div>
+ <input id="ptitle" class="ptitle" type="text" placeholder="Problem (optional) – e.g. 3-phase power" autocomplete="off" spellcheck="false">
+ <div class="pscroll">
+ <div class="psec"><span class="pl pg">Given</span><textarea id="pgiven" class="paper" rows="5" spellcheck="false" placeholder="V_L = 480 V&#10;I_L = 30 A&#10;pf = 0.8"></textarea><div id="pvars" class="cvars"></div></div>
+ <div class="psec"><span class="pl pf">Find</span><textarea id="pfind" class="paper" rows="2" spellcheck="false" placeholder="P = ? W"></textarea></div>
+ <div class="psec"><span class="pl pe">Equations</span><textarea id="peq" class="paper" rows="5" spellcheck="false" placeholder="P = sqrt(3) * V_L * I_L * pf"></textarea></div>
+ <div class="psec"><span class="pl ps">Solution</span><div id="psol" class="paper sol"></div></div>
+ </div>
+ <div class="cchips pchips"><button class="btn sm" data-pchip="sqrt()">√</button><button class="btn sm" data-pchip=" * ">×</button><button class="btn sm" data-pchip=" / ">÷</button><button class="btn sm" data-pchip="^2">x²</button><button class="btn sm" data-pchip="_">x<sub>n</sub></button><button class="btn sm" data-pchip="%">%</button><button class="btn sm" data-pchip="()">( )</button><button class="btn sm" data-pchip="theta">θ</button><button class="btn sm" data-pchip="pi">π</button><button class="btn sm" data-pchip="up()">up( )</button></div>
+ <details class="chelp"><summary>How to use the pad</summary>
+  <p class="note" style="margin:6px 0 4px"><b>Given</b> – one per line: <code class="plain">V_L = 480 V</code>, <code class="plain">I_ph = 17.3</code>, <code class="plain">pf = 0.8</code>. Names may have subscripts with <code class="plain">_</code> (<code class="plain">V_L</code>, <code class="plain">I_{ph}</code>); a unit after the number is kept for the answer. Later lines can use earlier ones.</p>
+  <p class="note" style="margin:4px 0"><b>Find</b> – what you want: <code class="plain">P = ? W</code>. The answer is boxed at the bottom of the Solution when an equation defines it.</p>
+  <p class="note" style="margin:4px 0"><b>Equations</b> – top to bottom, each can use any variable above it: <code class="plain">P = sqrt(3) * V_L * I_L * pf</code>. Typeset steps appear in the Solution: the formula, then your numbers substituted, then the result.</p>
+  <p class="note" style="margin:4px 0">Operators: <code class="plain">+ − * / ^ %</code>, brackets, <code class="plain">sqrt()</code>, sin/cos in degrees, Greek names (<code class="plain">theta</code>, <code class="plain">eta</code>), and all the calculator’s helpers (<code class="plain">up()</code>, <code class="plain">flc3()</code>, <code class="plain">i3()</code>, <code class="plain">wire()</code> …). Click a variable chip to insert its name. Notes after <code class="plain">#</code> are ignored.</p></details>
 </aside>
 <div id="drawers"></div>
 
@@ -1935,6 +1975,167 @@ function copyText(txt){
   if(same)TP.delete(h.t);else{TP.set(h.t,h.c);tmark(h.t,info,'pin','pinx')}
   const v=tcellValue(h.c);copyText(v);toast('Copied: '+v+(same?'  (highlight cleared)':''))});
  document.addEventListener('keydown',e=>{if(e.key==='Escape'){$$(sel).forEach(t=>{if(TP.has(t)){tclear(t,'pin','pinx');TP.delete(t)}})}});
+})();
+
+/* ============================== scratch pad: Given / Find / Equations / Solution ============================== */
+const PADU=new Set(['V','A','W','kW','VA','kVA','kV','kA','mA','hp','Hz','Ω','ohm','ohms','%','°','ft','in','mm','AWG','kvar','var','s','kcmil']);
+const GREEK={theta:'\\theta',phi:'\\varphi',eta:'\\eta',rho:'\\rho',omega:'\\omega',alpha:'\\alpha',beta:'\\beta',delta:'\\delta',lambda:'\\lambda',mu:'\\mu',sigma:'\\sigma',tau:'\\tau',Delta:'\\Delta',Omega:'\\Omega'};
+const PAD={dec:'auto'};
+function padPre(s){return s.replace(/_\{([^}]*)\}/g,(m,x)=>'_'+x.replace(/[^A-Za-z0-9]/g,'_')).replace(/θ/g,'theta').replace(/φ/g,'phi').replace(/η/g,'eta').replace(/ρ/g,'rho').replace(/ω/g,'omega').replace(/α/g,'alpha').replace(/β/g,'beta').replace(/λ/g,'lambda').replace(/μ/g,'mu').replace(/Δ/g,'Delta').replace(/π/g,'pi').replace(/·/g,'*').replace(/²/g,'^2').replace(/³/g,'^3')}
+function padFmt(v){
+ if(typeof v==='string')return v;if(!isFinite(v))return String(v);
+ if(PAD.dec!=='auto'){const d=+PAD.dec;return v.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d})}
+ const a=Math.abs(v);if(a!==0&&(a>=1e12||a<1e-6))return v.toExponential(5);
+ const sig=Math.max(6,a>=1?Math.floor(Math.log10(a))+1:6);return (+v.toPrecision(sig)).toLocaleString('en-US',{maximumFractionDigits:6})}
+const pnum=v=>padFmt(v).replace(/,/g,'\\,');
+function punit(u){return !u?'':u==='Ω'||/^ohms?$/.test(u)?'\\,\\Omega':u==='%'?'\\,\\%':u==='°'?'^{\\circ}':'\\,\\mathrm{'+u+'}'}
+function vname(nm){
+ const i=nm.indexOf('_');let b=i<0?nm:nm.slice(0,i),sb=i<0?'':nm.slice(i+1);sb=/^[A-Za-z]+(_[A-Za-z]+)+$/.test(sb)?sb.replace(/_/g,'-'):sb.replace(/_/g,',');let m;
+ if(i<0&&(m=b.match(/^([A-Za-z])(\d+)$/))){b=m[1];sb=m[2]}
+ const base=GREEK[b]||(b.length>1?'\\mathrm{'+b+'}':b);
+ return base+(sb?'_{\\mathrm{'+sb+'}}':'')}
+function padAst(src){
+ const T=calcTok(padPre(src));let p=0;
+ const pk=()=>T[p],isO=(t,v)=>t&&t.t==='o'&&t.v===v;
+ const need=v=>{if(!isO(pk(),v))throw new Error('expected “'+v+'”');p++};
+ function ex(){let l=tm();while(isO(pk(),'+')||isO(pk(),'-')){const o=T[p++].v;l={t:'b',op:o,l,r:tm()}}return l}
+ function tm(){let l=un();for(;;){const t=pk();if(isO(t,'*')||isO(t,'/')){p++;l={t:'b',op:t.v,l,r:un()}}else if(t&&(t.t==='n'||t.t==='i'||isO(t,'('))){l={t:'b',op:'*',imp:true,l,r:un()}}else break}return l}
+ function un(){if(isO(pk(),'-')){p++;return {t:'neg',x:un()}}if(isO(pk(),'+')){p++;return un()}return pw()}
+ function pw(){const b=po();if(isO(pk(),'^')){p++;return {t:'b',op:'^',l:b,r:un()}}return b}
+ function po(){let n=pr();while(isO(pk(),'%')){p++;n={t:'pct',x:n}}return n}
+ function pr(){const t=T[p++];if(!t)throw new Error('incomplete expression');
+  if(t.t==='n')return {t:'n',v:t.v};
+  if(isO(t,'(')){const x=ex();need(')');return {t:'grp',x}}
+  if(t.t==='i'){
+   if(isO(pk(),'(')){p++;const a=[];if(!isO(pk(),')')){do{a.push(ex())}while(isO(pk(),',')&&(p++,true))}need(')');return {t:'call',f:t.v,args:a}}
+   if(t.v==='sqrt'&&pk()&&(pk().t==='n'||pk().t==='i'))return {t:'call',f:'sqrt',args:[pw()]};
+   return {t:'v',name:t.v}}
+  throw new Error('unexpected “'+t.v+'”')}
+ const n=ex();if(p<T.length)throw new Error('unexpected “'+T[p].v+'”');return n}
+function padEv(n,V){
+ const num=x=>{if(typeof x!=='number')throw new Error('a text result (like wire) can’t be used in math');return x};
+ switch(n.t){
+  case 'n':return n.v;
+  case 'v':if(n.name in V)return V[n.name];if(n.name in CCONST)return CCONST[n.name];throw new Error('unknown variable “'+n.name+'” – define it in Given or in an earlier equation');
+  case 'grp':return padEv(n.x,V);
+  case 'neg':return -num(padEv(n.x,V));
+  case 'pct':return num(padEv(n.x,V))/100;
+  case 'call':{const f=CFN[n.f];if(!f)throw new Error('unknown function “'+n.f+'”');const r=f(...n.args.map(x=>padEv(x,V)));if(typeof r==='number'&&!isFinite(r))throw new Error('result is not a number');return r}
+  case 'b':{const a=num(padEv(n.l,V)),b=num(padEv(n.r,V));
+   switch(n.op){case '+':return a+b;case '-':return a-b;case '*':return a*b;case '/':if(b===0)throw new Error('division by zero');return a/b;case '^':return Math.pow(a,b)}}}}
+let PTXU=false;
+function ptx(n,V){
+ const strip=x=>x.t==='grp'?ptx(x.x,V):ptx(x,V);
+ switch(n.t){
+  case 'n':return pnum(n.v);
+  case 'v':{
+   if(V&&typeof V[n.name]==='number'&&!(n.name in CCONST)){PTXU=true;const v=V[n.name];return v<0?'\\left('+pnum(v)+'\\right)':pnum(v)}
+   if(n.name==='pi')return '\\pi';if(n.name==='sqrt3'||n.name==='r3')return '\\sqrt{3}';
+   return vname(n.name)}
+  case 'grp':return '\\left('+ptx(n.x,V)+'\\right)';
+  case 'neg':return '-'+((n.x.t==='b'&&(n.x.op==='+'||n.x.op==='-'))?'\\left('+ptx(n.x,V)+'\\right)':ptx(n.x,V));
+  case 'pct':return ptx(n.x,V)+'\\%';
+  case 'call':{const a=n.args.map(x=>ptx(x,V)),f=n.f;
+   if(f==='sqrt')return '\\sqrt{'+strip(n.args[0])+'}';
+   if(f==='abs')return '\\left|'+a[0]+'\\right|';
+   if(/^(sin|cos|tan|asin|acos|atan|ln|log|exp)$/.test(f)){const nm={asin:'\\arcsin',acos:'\\arccos',atan:'\\arctan'}[f]||'\\'+f;return nm+'\\left('+a.join(',')+'\\right)'}
+   if(f==='pow'&&a.length===2)return '{'+a[0]+'}^{'+a[1]+'}';
+   return '\\operatorname{'+f.replace(/_/g,'\\_')+'}\\left('+a.join(',\\,')+'\\right)'}
+  case 'b':{const o=n.op;
+   if(o==='/')return '\\dfrac{'+strip(n.l)+'}{'+strip(n.r)+'}';
+   if(o==='^'){const b=(n.l.t==='b'||n.l.t==='neg'||n.l.t==='pct')?'\\left('+ptx(n.l,V)+'\\right)':ptx(n.l,V);return b+'^{'+strip(n.r)+'}'}
+   const L=ptx(n.l,V),R=ptx(n.r,V);
+   if(o==='*')return L+(n.imp?'\\,':' \\times ')+(n.r.t==='neg'?'\\left('+R+'\\right)':R);
+   return L+' '+o+' '+R}}}
+function padLine(raw){
+ let s=raw.replace(/(#|\/\/).*$/,'').trim();if(!s)return null;
+ let lhs=null,rhs=s;const eq=s.indexOf('=');
+ if(eq>0&&s[eq+1]!=='='){const l=padPre(s.slice(0,eq)).replace(/\s+/g,'');if(/^[A-Za-z_][A-Za-z0-9_]*$/.test(l)){lhs=l;rhs=s.slice(eq+1).trim()}}
+ let unit='',m=rhs.match(/^(.*\S)\s+(\S+)$/);
+ if(m&&PADU.has(m[2])){rhs=m[1];unit=m[2]}
+ else if((m=rhs.match(/^([-+]?[\d.]+(?:[eE][-+]?\d+)?)\s*([A-Za-zΩ°%]+)$/))&&PADU.has(m[2])){rhs=m[1];unit=m[2]}
+ return {lhs,rhs,unit,raw:s}}
+function padFindLine(raw){
+ const s=raw.replace(/(#|\/\/).*$/,'').replace(/^\s*find\s+/i,'').trim();if(!s)return null;
+ const parts=s.replace(/[=?]/g,' ').trim().split(/\s+/);const name=padPre(parts[0]).replace(/\s+/g,'');
+ return {name,unit:PADU.has(parts[1])?parts[1]:''}}
+function padSolve(given,find,eq){
+ const V={},U={},errs=[],steps=[],vars=[];
+ const lines=t=>t.split(/\n/).map((r,i)=>({r,i:i+1}));
+ for(const {r,i} of lines(given)){
+  try{const L=padLine(r);if(!L)continue;if(!L.lhs)throw new Error('write it as  name = value  (e.g. V_L = 480 V)');
+   if(L.lhs in CCONST)throw new Error('“'+L.lhs+'” is a reserved constant');
+   const ast=padAst(L.rhs);const v=padEv(ast,V);V[L.lhs]=v;U[L.lhs]=L.unit;vars.push(L.lhs)}
+  catch(e){errs.push({sec:'Given',i,m:e.message})}}
+ for(const {r,i} of lines(eq)){
+  try{const L=padLine(r);if(!L)continue;
+   if(L.lhs&&L.lhs in CCONST)throw new Error('“'+L.lhs+'” is a reserved constant');
+   const ast=padAst(L.rhs),v=padEv(ast,V);
+   PTXU=false;const sym=ptx(ast,null);PTXU=false;const sub=ptx(ast,V);const used=PTXU;
+   const name=L.lhs?vname(L.lhs):'';
+   steps.push({i,lhs:L.lhs,name,sym,sub:used?sub:null,val:v,unit:L.unit||(L.lhs&&U[L.lhs])||'',raw:L.raw});
+   if(L.lhs){V[L.lhs]=v;U[L.lhs]=L.unit;if(!vars.includes(L.lhs))vars.push(L.lhs)}}
+  catch(e){errs.push({sec:'Equations',i,m:e.message})}}
+ const answers=[];
+ for(const {r,i} of lines(find)){const F=padFindLine(r);if(F&&F.unit)steps.forEach(st=>{if(st.lhs===F.name&&!st.unit)st.unit=F.unit})}
+ for(const {r,i} of lines(find)){const F=padFindLine(r);if(!F)continue;
+  if(F.name in V)answers.push({name:F.name,val:V[F.name],unit:F.unit||U[F.name]||''});
+  else answers.push({name:F.name,val:null,unit:F.unit})}
+ return {V,U,vars,steps,errs,answers}}
+function padTex(el,tex,plain){if(window.katex){try{katex.render(tex,el,{throwOnError:false,strict:false});return}catch(e){}}el.textContent=plain||tex}
+const PAD_EX={
+ '3-phase power':{given:'V_L = 480 V\nI_L = 30 A\npf = 0.8',find:'P = ? W\nP_kW = ? kW',eq:'P = sqrt(3) * V_L * I_L * pf\nP_kW = P / 1000'},
+ 'Transformer current & primary-only protection':{given:'kVA = 75\nV_p = 480 V\nV_s = 208 V',find:'I_p = ? A\nI_s = ? A\nOCPD_p = ? A',eq:'I_p = kVA*1000 / (sqrt(3) * V_p)\nI_s = kVA*1000 / (sqrt(3) * V_s)\nI_pmax = I_p * 125%\nOCPD_p = up(I_pmax)'},
+ 'Motor branch circuit (25 hp, 460 V)':{given:'hp = 25\nV = 460 V',find:'FLC = ? A\nI_cond = ? A\nsize = ?\nI_brk = ? A',eq:'FLC = flc3(hp, V)\nI_cond = FLC * 125%\nsize = wire(I_cond)\nI_max = FLC * 250%\nI_brk = up(I_max)'},
+ 'Fault current at a transformer':{given:'kVA = 150\nV = 480 V\nZ = 3.5 %',find:'I_FL = ? A\nI_sc = ? A',eq:'I_FL = kVA*1000 / (sqrt(3) * V)\nI_sc = I_FL / (Z/100)'},
+ 'Single-phase control transformer (two legs)':{given:'VA = 1000 VA\nV = 480 V',find:'I = ? A',eq:'I = VA / V'}};
+(function(){
+ let last=null;
+ const ids=['pgiven','pfind','peq'];
+ const get=()=>({title:$('#ptitle').value,given:$('#pgiven').value,find:$('#pfind').value,eq:$('#peq').value,dec:PAD.dec,open:document.body.classList.contains('pad-open')});
+ const save=()=>store.set('ul508a.pad',get());
+ function run(){
+  const st=get();const R=padSolve(st.given,st.find,st.eq);
+  // variable chips
+  const esc=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  $('#pvars').innerHTML=R.vars.map(k=>`<span class="cv" data-pins="${esc(k)}" title="Click to insert ${esc(k)}">${esc(k)} = ${esc(padFmt(R.V[k]))}${R.U[k]?' '+esc(R.U[k]):''}</span>`).join('');
+  // solution
+  const S=$('#psol');S.innerHTML='';
+  if(!R.steps.length&&!R.errs.length){S.innerHTML='<p class="note" style="margin:6px">Write what you know under <b>Given</b>, what you want under <b>Find</b>, then your formulas under <b>Equations</b> – the solution appears here.</p>'}
+  R.steps.forEach((s,k)=>{
+   const d=document.createElement('div');d.className='step';
+   const n=document.createElement('div');n.className='sn';n.textContent=(k+1)+'.';d.appendChild(n);
+   const body=document.createElement('div');body.className='sb';d.appendChild(body);
+   const mk=(tex,plain,cls)=>{const l=document.createElement('div');l.className='tl '+(cls||'');padTex(l,tex,plain);body.appendChild(l)};
+   const val=typeof s.val==='string'?'\\text{'+s.val.replace(/[\\{}_^%#&$~]/g,' ')+'}':pnum(s.val)+punit(s.unit);
+   mk((s.name?s.name+' = ':'')+s.sym,s.raw);
+   if(s.sub)mk((s.name?s.name+' = ':'')+s.sub,'');
+   mk((s.name||'\\text{result}')+' = '+val,(s.lhs||'result')+' = '+padFmt(s.val)+(s.unit?' '+s.unit:''),'res');
+   S.appendChild(d)});
+  R.errs.forEach(e=>{const d=document.createElement('div');d.className='perr';d.textContent='⚠ '+e.sec+' line '+e.i+': '+e.m;S.appendChild(d)});
+  if(R.answers.length){const A=document.createElement('div');A.className='pans';
+   R.answers.forEach(a=>{const l=document.createElement('div');if(a.val==null){l.className='nf';l.textContent=a.name+' = ?  (not solved yet – write an equation for it)'}else{l.className='ok2';const v=typeof a.val==='string'?'\\text{'+a.val.replace(/[\\{}_^%#&$~]/g,' ')+'}':pnum(a.val)+punit(a.unit);padTex(l,vname(a.name)+' = '+v,a.name+' = '+padFmt(a.val))}A.appendChild(l)});
+   S.appendChild(A)}
+  window._padLast={R,st};save()}
+ let tm;const sched=()=>{clearTimeout(tm);tm=setTimeout(run,160)};
+ // restore
+ const sv=store.get('ul508a.pad',null);
+ if(sv){$('#ptitle').value=sv.title||'';$('#pgiven').value=sv.given||'';$('#pfind').value=sv.find||'';$('#peq').value=sv.eq||'';PAD.dec=sv.dec||'auto';$('#pdec').value=PAD.dec}
+ ['ptitle',...ids].forEach(id=>{$('#'+id).addEventListener('input',sched);$('#'+id).addEventListener('focus',e=>{last=e.target})});
+ $('#pex').innerHTML='<option value="">Load an example…</option>'+Object.keys(PAD_EX).map(k=>`<option>${k}</option>`).join('');
+ $('#pdec').onchange=e=>{PAD.dec=e.target.value;run()};
+ $('#pex').onchange=e=>{const ex=PAD_EX[e.target.value];if(!ex)return;$('#ptitle').value=e.target.value;$('#pgiven').value=ex.given;$('#pfind').value=ex.find;$('#peq').value=ex.eq;e.target.value='';run()};
+ $('#pclear').onclick=()=>{if(confirm('Clear the scratch pad?')){['ptitle',...ids].forEach(id=>$('#'+id).value='');run()}};
+ $('#pcopy').onclick=()=>{const L=window._padLast;if(!L)return;const {R,st}=L;
+  const lines=[st.title?('Problem: '+st.title):'','GIVEN',...st.given.split('\n').filter(x=>x.trim()).map(x=>'  '+x),'FIND',...st.find.split('\n').filter(x=>x.trim()).map(x=>'  '+x),'EQUATIONS',...st.eq.split('\n').filter(x=>x.trim()).map(x=>'  '+x),'SOLUTION',...R.steps.map(s=>'  '+(s.lhs?s.lhs+' = ':'')+s.raw.replace(/^[^=]*=\s*/,s.lhs?'':'')+'  →  '+(s.lhs||'result')+' = '+padFmt(s.val)+(s.unit?' '+s.unit:'')),...R.answers.filter(a=>a.val!=null).map(a=>'ANSWER: '+a.name+' = '+padFmt(a.val)+(a.unit?' '+a.unit:''))].filter(x=>x!=='');
+  copyText(lines.join('\n'));toast('Scratch pad copied')};
+ $('#pad').addEventListener('click',e=>{
+  const c=e.target.closest('[data-pchip]');if(c){const ta=last||$('#peq');const a=ta.selectionStart??ta.value.length,b=ta.selectionEnd??a;const txt=c.dataset.pchip;ta.value=ta.value.slice(0,a)+txt+ta.value.slice(b);const pos=a+txt.length-(txt.endsWith('()')?1:0);ta.focus();ta.setSelectionRange(pos,pos);sched();return}
+  const v=e.target.closest('[data-pins]');if(v){const ta=last||$('#peq');const a=ta.selectionStart??ta.value.length,b=ta.selectionEnd??a;ta.value=ta.value.slice(0,a)+v.dataset.pins+ta.value.slice(b);ta.focus();const pos=a+v.dataset.pins.length;ta.setSelectionRange(pos,pos);sched()}});
+ window.padToggle=open=>{const on=open??!document.body.classList.contains('pad-open');document.body.classList.toggle('pad-open',on);$('#pad').setAttribute('aria-hidden',!on);$('#padBtn').setAttribute('aria-pressed',on);save();if(on)setTimeout(()=>$('#pgiven').focus(),50)};
+ $('#padBtn').onclick=()=>padToggle();$('#pclose').onclick=()=>padToggle(false);
+ if(sv&&sv.open)padToggle(true);
+ run();
 })();
 
 updateScore();render();
