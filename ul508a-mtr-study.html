@@ -63,6 +63,7 @@ code[data-tex="1"]{background:none;padding:0;font-family:inherit;font-size:1.05e
 .sv text{font:9.5px system-ui,sans-serif;fill:var(--ink);stroke:none}.sv .k{fill:var(--bad);font-weight:700}.sv .g{fill:var(--ph-c);font-size:14px;font-weight:700}.sv .sm{font-size:8px;fill:var(--mut)}
 .choices{margin:8px 0}.choices label{display:block;padding:6px 10px;border:1px solid var(--line);border-radius:8px;margin:4px 0;cursor:pointer}.choices label:hover{border-color:var(--acc)}.choices .row{margin-top:6px}
 .tipbox{background:var(--acc2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}.tip h3{font-size:1.05rem}ul.tips li{margin:8px 0}.tip a{color:var(--acc)}
+.exc{border-color:#d9b92e}.defbox{background:var(--code);border:1px solid var(--line);border-radius:8px;padding:12px 14px}.sticky{background:#fff1a1;color:#2b2b2b;border-radius:4px 4px 18px 4px;padding:12px 16px;box-shadow:3px 4px 10px rgba(0,0,0,.25);font-family:"Segoe Print","Comic Sans MS",cursive,system-ui,sans-serif}.sticky li{margin:4px 0}
 </style>
 </head>
 <body>
@@ -108,6 +109,7 @@ const wireFor=(amps,isHigh)=>{const t=(isHigh?W75:W60).find(w=>w[1]>=amps-1e-9);
 const TOPICS={scope:'Scope & Marking',motor:'Motor Circuits',sccr:'SCCR & Fault Current',xfmr:'Transformers (Power & Control)',upsize:'Sizing Up & Feeders',xcur:'Transformer Current (Single- & 3-Phase)',wire:'Conductors & Grounding',math:'Electrical Math',ctrl:'Controls & Protection'};
 const SRC_L='Larson Electronics, “How to Calculate Transformer Primary and Secondary Current” (Jan 8, 2026)';
 const SRC_I='Industrial Monitor Direct, “480V to 120V Transformer Ampacity Calculation for Test Stations” (Apr 13, 2026)';
+const SRC_E='Industrial control panel circuit types (course slide, supplied)';
 const SRC_W='SCCR worksheets and test-taker notes (supplied)';
 const SRC_S='UL 508A Supplement SB tables (SB4.1/SB4.2 from the Cooper Bussmann 2008 reprint; SB4.3/SB4.4 from the 2021 edition)';
 const T450='<div class="tbl"><table><tr><th>Protection method</th><th>Primary device max</th><th>Secondary device max</th></tr><tr><td rowspan="3">Primary only</td><td>I<sub>p</sub> ≥ 9 A: <b>125 %</b> (next std size up allowed)</td><td>none required by the table</td></tr><tr><td>2 A ≤ I<sub>p</sub> &lt; 9 A: <b>167 %</b></td><td>–</td></tr><tr><td>I<sub>p</sub> &lt; 2 A: <b>300 %</b></td><td>–</td></tr><tr><td rowspan="2">Primary + secondary</td><td><b>250 %</b></td><td>I<sub>s</sub> ≥ 9 A: <b>125 %</b> (next std size up allowed)</td></tr><tr><td><b>250 %</b></td><td>I<sub>s</sub> &lt; 9 A: <b>167 %</b></td></tr></table></div>';
@@ -792,6 +794,12 @@ const Q=[
  a:'<b>No</b> – 20 AWG and smaller (20–30 AWG) are only for connecting control circuits for <b>electronic programmable input/output and static control</b> (no moving parts). An ordinary control circuit uses <b>18 AWG (7 A) minimum</b>. 28 and 30 AWG (0.8 A and 0.5 A) are further limited to conductors in a <b>jacketed multi-conductor cable</b>.',
  steps:['Table 38.1: 16 AWG = 10 A, 18 AWG = 7 A, 20 AWG = 5 A (b), 22 = 3, 24 = 2, 26 = 1, 28 = 0.8 (a, b), 30 = 0.5 (a, b).','Footnote b: PLC I/O and static control only; footnote a: jacketed multi-conductor cable only.','For a 5 A protected relay circuit: <code>18 AWG (7 A)</code>.'],
  why:'Size the control wire from the amp rating of the control-circuit overcurrent device (or the CPT / power-supply secondary rating) – and remember the 18 AWG minimum for ordinary control wiring.'},
+{id:'sc-11',t:'sccr',d:2,src:SRC_E,q:'Which circuits does SCCR apply to – power or control circuit devices – and how does UL 508A define a power circuit and a control circuit?',
+ a:'SCCR applies <b>only to power circuit devices</b>, not to control circuit devices (SB4.1.1 and SB4.2.1).<br><b>Power circuit (2.40)</b> – conductors and components of branch and feeder circuits.<br><b>Control circuit (2.11)</b> – a circuit that carries the electric signals directing the performance of a controller and does not carry the main power current; in most cases limited to 15 amperes.',
+ why:'Evaluate every power-circuit component (feeder and branch). The overcurrent devices that protect control circuits are still checked in Sweep 2 of the Bussmann two-sweep method.'},
+{id:'sc-12',t:'sccr',d:2,src:SRC_E,q:'List the components to which SCCR does <b>not</b> apply (Table SB4.2.1 exceptions).',
+ a:'<ol><li>Transformers, reactors, current transformers, dry-type capacitors, resistors, varistors, one-port SPDs and voltmeters.</li><li>Wye-delta “S” contactor.</li><li>Cord-and-plug connected enclosure air conditioner.</li><li>Wiring ferrules used in internal wiring.</li><li>EMI / RFI / line filters on the line or load side of power conversion equipment.</li></ol>',
+ why:'These parts need no SCCR rating (and are skipped in the weakest-link search). Remember the transformer is also what lets you disregard downstream parts via Tables SB4.3 / SB4.4 – a different rule.'},
 /* ---------- WIRE ---------- */
 {id:'wire-1',t:'wire',d:2,q:'What is the smallest copper equipment grounding conductor (AWG) for circuits protected by a <b>100 A</b> breaker?',
  num:{v:8,tol:0.001,u:'AWG'},
@@ -1490,10 +1498,20 @@ D('Two-sweep method (Supplement SB, Bussmann guide)',`<p><b>Sweep 1 – componen
  <div class="tbl"><table><tr><th>Let-through values used in the worksheets (Table SB4.2)</th><th>I<sub>p</sub></th></tr><tr><td>Class J 225 A (100 kA available)</td><td>24 kA</td></tr><tr><td>Class J 225 A (200 kA available)</td><td>33 kA</td></tr><tr><td>Class J 350 A, 100 kA</td><td>29 kA</td></tr><tr><td>Class CC 30 A</td><td>7.5 kA</td></tr><tr><td>Class CC 10 / 15 A</td><td>3 kA</td></tr></table></div><p class="note">Values as quoted in the worksheets. The 2008 reprint of Table SB4.2 (Reference tab) gives Class J 225 A = 23 kA (250 A row = 24 kA) at 100 kA, 350 A = 29 kA ✔, Class CC 30 A = 7.5 kA ✔, CC 15 A = 3 kA ✔; 33 kA at 200 kA for 225 A is not in that reprint (200 A = 30 kA, 400 A = 45 kA). The worksheet answers do not change.</p>`)+
  D('7. Ways to raise SCCR',`<ol><li>Higher-rated (marked) components.</li><li>Tested combinations / published combination ratings.</li><li>Current-limiting fuses or breakers in the feeder.</li><li>Higher-interrupting branch devices.</li><li>Reduce available current (higher-impedance transformer, line reactor) – changes the installation, not the panel.</li></ol>`)}
 };
+
+const SCCR_EXC=()=>`<div class="card exc"><h3 style="margin:0 0 8px">SCCR applies only to power circuit devices – and these exceptions</h3>
+ <div class="grid"><div class="defbox"><p style="margin:0 0 6px"><b>UL 508A definitions</b></p>
+  <p style="margin:0 0 6px"><b>2.40 POWER CIRCUIT</b> – Conductors and components of branch and feeder circuits.</p>
+  <p style="margin:0"><b>2.11 CONTROL CIRCUITS</b> – A circuit that carries the electric signals directing the performance of a controller, and which does not carry the main power circuit. A control circuit is, in most cases, limited to 15 amperes.</p>
+  <p style="margin:8px 0 0"><b>SCCR applies only to POWER CIRCUIT devices, not CONTROL CIRCUIT devices</b> (SB4.1.1 and SB4.2.1).</p></div>
+ <div class="sticky"><p style="margin:0 0 6px"><i>Exception: SCCR does <b>NOT</b> apply to:</i></p>
+  <ol style="margin:0;padding-left:22px"><li>Transformers, reactors, CTs, dry-type capacitors, resistors, varistors, one-port SPDs and voltmeters</li><li>Wye-delta “S” contactor</li><li>Cord &amp; plug connected enclosure AC</li><li>Wiring ferrules used in internal wiring</li><li>EMI / RFI / line filters on the line or load side of power conversion equipment</li></ol>
+  <p style="margin:8px 0 0"><i>(SB4.2.1 exceptions)</i></p></div></div>
+ <p class="note" style="margin:10px 0 0">The Bussmann two-sweep guide adds that the <b>overcurrent protective devices protecting control circuits</b> are still checked in Sweep 2. Verify the exception list in the edition you are tested on.</p></div>`;
 function viewSection(key){
  const S=SECTIONS[key],m=$('#main'),qs=Q.filter(q=>q.sec===key);
  const done=()=>qs.filter(q=>prog[q.id]==='got').length;
- m.innerHTML=`<div class="card"><h2 style="margin:0 0 4px">${S.title}</h2><p class="note" style="margin:0 0 10px">${S.blurb}</p>${S.lesson()}</div>
+ m.innerHTML=`${key==='sccr'?SCCR_EXC():''}<div class="card"><h2 style="margin:0 0 4px">${S.title}</h2><p class="note" style="margin:0 0 10px">${S.blurb}</p>${S.lesson()}</div>
  <div class="card"><div class="row"><b>Practice (${qs.length} questions)</b><button class="btn sm" id="showAll">Show all answers</button><button class="btn sm" id="hideAll">Hide all</button><button class="btn sm pri" id="qz">Quiz this section</button><button class="btn sm" id="gosim">Open simulator →</button></div>
  <div class="prog" style="margin-top:10px"><i id="pbar"></i></div><div class="note" id="pt"></div></div><div id="list"></div>`;
  const list=$('#list'),bar=()=>{$('#pbar').style.width=(done()/qs.length*100)+'%';$('#pt').textContent=`Knew it: ${done()} / ${qs.length}`};
@@ -1559,7 +1577,7 @@ function viewPart(n){
  let topic=store.get('ul508a.parttopic'+n,'all');
  const topics=[...new Set(all.map(q=>q.t))];
  m.innerHTML=`<div class="sub">${[1,2,3,4].map(i=>`<button data-go="part${i}" class="${i===n?'on':''}">Part ${i}</button>`).join('')}<button data-go="parts">All parts</button></div>
- <div class="card"><h2 style="margin:0 0 6px">${P.title}</h2><p class="note" style="margin:0 0 6px">What this part covers:</p><ul style="margin:0 0 10px;padding-left:20px">${P.covers.map(x=>`<li>${x}</li>`).join('')}</ul>${P.notes()}</div>
+ ${n===4?SCCR_EXC():''}<div class="card"><h2 style="margin:0 0 6px">${P.title}</h2><p class="note" style="margin:0 0 6px">What this part covers:</p><ul style="margin:0 0 10px;padding-left:20px">${P.covers.map(x=>`<li>${x}</li>`).join('')}</ul>${P.notes()}</div>
  <div class="card"><div class="row"><b>Practice (<span id="cnt"></span>)</b><label>Topic <select id="pt_"><option value="all">All</option>${topics.map(t=>`<option value="${t}">${TOPICS[t]}</option>`).join('')}</select></label><button class="btn sm" id="showAll">Show all answers</button><button class="btn sm" id="hideAll">Hide all</button><button class="btn sm pri" id="qz">Quiz this part</button></div><div class="prog" style="margin-top:10px"><i id="pbar"></i></div><div class="note" id="pt"></div></div><div id="list"></div>`;
  const list=$('#list'),cur=()=>all.filter(q=>topic==='all'||q.t===topic),bar=()=>{const c=partCount(n);$('#pbar').style.width=(c.n?c.done/c.n*100:0)+'%';$('#pt').textContent=`Knew it: ${c.done} / ${c.n} in this part`};
  const draw=()=>{const qs=cur();$('#cnt').textContent=qs.length+' questions';list.innerHTML=qs.map((q,i)=>cardHTML(q,i,{n:i+1})).join('');bar()};
