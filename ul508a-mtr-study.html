@@ -78,6 +78,17 @@ body.calc-open #calc{transform:none}
 .chelp{border:1px solid var(--line);border-radius:8px;padding:6px 10px;max-height:220px;overflow-y:auto;font-size:.86rem}.chelp summary{cursor:pointer;font-weight:600}.cex{padding:5px 8px;margin:4px 0;border:1px solid var(--line);border-radius:6px;cursor:pointer}.cex:hover{border-color:var(--acc);color:var(--acc)}
 .cfoot{display:flex;gap:6px}code.plain{background:var(--code);padding:0 4px;border-radius:3px}
 @media print{#calc{display:none}}
+
+.drawer{position:fixed;top:0;bottom:0;left:0;width:min(600px,calc(100vw - 80px));background:var(--card);border-right:3px solid var(--tc);transform:translateX(-100%);transition:transform .25s ease;z-index:20;display:flex;flex-direction:column}
+.drawer.open{transform:translateX(40px);z-index:26;box-shadow:6px 0 18px rgba(0,0,0,.25),-3px 0 8px rgba(0,0,0,.12)}
+.drawer:not(.open)>:not(.dtab){visibility:hidden;transition:visibility 0s .25s}
+.dtab{position:absolute;left:100%;top:calc(76px + var(--i)*max(100px,13.5vh));width:34px;height:max(92px,12.5vh);border:0;border-radius:0 14px 14px 0;background:var(--tc);color:var(--tx);font:600 12px/1 system-ui,sans-serif;letter-spacing:.03em;writing-mode:vertical-rl;cursor:pointer;box-shadow:3px 3px 7px rgba(0,0,0,.28);padding:0;text-align:center}
+.dtab:hover{filter:brightness(1.1);width:38px}
+.dtab:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.dhead{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--tc);color:var(--tx)}.dhead b{flex:1}.dx{border:0;background:rgba(255,255,255,.25);color:inherit;border-radius:6px;padding:2px 9px;cursor:pointer;font:inherit}
+.dbody{overflow:auto;padding:4px 16px 24px;flex:1}.dbody h4{margin:16px 0 6px;font-size:1rem;border-bottom:2px solid var(--tc);padding-bottom:3px}.dbody ul{padding-left:20px}
+@media(max-width:1000px){body{padding-left:40px}}
+@media print{.drawer{display:none}}
 </style>
 </head>
 <body>
@@ -105,6 +116,7 @@ body.calc-open #calc{transform:none}
   <p class="note" style="margin:4px 0">↑ / ↓ recall earlier entries; click a result to insert it; click a variable to insert its name.</p></details>
  <div class="cfoot"><button class="btn sm" id="cclr">Clear history</button><button class="btn sm" id="cclrv">Clear variables</button></div>
 </aside>
+<div id="drawers"></div>
 
 <script>
 'use strict';
@@ -141,6 +153,15 @@ const TOPICS={scope:'Scope & Marking',motor:'Motor Circuits',sccr:'SCCR & Fault 
 const SRC_L='Larson Electronics, “How to Calculate Transformer Primary and Secondary Current” (Jan 8, 2026)';
 const SRC_I='Industrial Monitor Direct, “480V to 120V Transformer Ampacity Calculation for Test Stations” (Apr 13, 2026)';
 const SRC_E='Industrial control panel circuit types (course slide, supplied)';
+const RULES_TBL=`<table><tr><th>Item</th><th>Rule</th></tr>
+ <tr><td>Conductors</td><td>125 % of FLC (largest motor) + 100 % others</td></tr>
+ <tr><td>Non-time-delay fuse</td><td>300 % (up to 400 % if it blocks starting)</td></tr>
+ <tr><td>Dual-element fuse</td><td>175 % (225 %)</td></tr>
+ <tr><td>Inverse-time breaker</td><td>250 % (400 % ≤ 100 A / 300 % &gt; 100 A)</td></tr>
+ <tr><td>Instantaneous-trip breaker (MCP)</td><td>800 % (1100 % Design B energy-efficient); may be raised to 1300 % (1700 %) if it nuisance-trips</td></tr><tr><td>Self-protected (Type E/F) motor controller</td><td>100 % of FLA (no sizing up)</td></tr><tr><td>Group motor</td><td>% × largest motor FLA + sum of other motor FLAs; ≤ group marking</td></tr><tr><td>Motor + CPT on same branch device</td><td>% × motor FLA + CPT primary current</td></tr><tr><td>Heater branch device</td><td>≥ 125 % of load (round up), ≤ 60 A</td></tr>
+ <tr><td>Overload (nameplate)</td><td>125 % (SF ≥ 1.15 or ≤ 40 °C rise) / 115 % others; up to 140 % / 130 %</td></tr>
+ <tr><td>Branch device rounding</td><td>round <b>up</b> to next standard size</td></tr>
+ <tr><td>Feeder device (guide p. 4)</td><td>largest branch device + FLC of all other loads (incl. CPT primary); closest standard size; must not exceed load-side conductor ampacity</td></tr></table>`;
 const SRC_W='SCCR worksheets and test-taker notes (supplied)';
 const SRC_S='UL 508A Supplement SB tables (SB4.1/SB4.2 from the Cooper Bussmann 2008 reprint; SB4.3/SB4.4 from the 2021 edition)';
 const T450='<div class="tbl"><table><tr><th>Protection method</th><th>Primary device max</th><th>Secondary device max</th></tr><tr><td rowspan="3">Primary only</td><td>I<sub>p</sub> ≥ 9 A: <b>125 %</b> (next std size up allowed)</td><td>none required by the table</td></tr><tr><td>2 A ≤ I<sub>p</sub> &lt; 9 A: <b>167 %</b></td><td>–</td></tr><tr><td>I<sub>p</sub> &lt; 2 A: <b>300 %</b></td><td>–</td></tr><tr><td rowspan="2">Primary + secondary</td><td><b>250 %</b></td><td>I<sub>s</sub> ≥ 9 A: <b>125 %</b> (next std size up allowed)</td></tr><tr><td><b>250 %</b></td><td>I<sub>s</sub> &lt; 9 A: <b>167 %</b></td></tr></table></div>';
@@ -1210,15 +1231,7 @@ function viewRef(){
   return `<table><tr><th>hp</th>${volts.map(v=>`<th>${v} V</th>`).join('')}</tr>${hps.map(h=>`<tr><td>${h}</td>${volts.map(v=>`<td>${T[v][h]??'–'}</td>`).join('')}</tr>`).join('')}</table>`};
  m.innerHTML=`<div class="banner">Reference tables reproduced for study. Always confirm against the standard / NEC edition used in your exam.</div>
  <div class="card"><h3>Motor full-load current (A)</h3><div class="grid"><div class="tbl"><b>3-phase (NEC 430.250 / UL 508A Table 50.1)</b>${flcRows(FLC3,[208,230,460,575])}</div><div class="tbl"><b>Single-phase (NEC 430.248)</b>${flcRows(FLC1,[115,230])}</div></div></div>
- <div class="card"><h3>Motor branch-circuit rules (max % of table FLC)</h3><div class="tbl"><table><tr><th>Item</th><th>Rule</th></tr>
- <tr><td>Conductors</td><td>125 % of FLC (largest motor) + 100 % others</td></tr>
- <tr><td>Non-time-delay fuse</td><td>300 % (up to 400 % if it blocks starting)</td></tr>
- <tr><td>Dual-element fuse</td><td>175 % (225 %)</td></tr>
- <tr><td>Inverse-time breaker</td><td>250 % (400 % ≤ 100 A / 300 % &gt; 100 A)</td></tr>
- <tr><td>Instantaneous-trip breaker (MCP)</td><td>800 % (1100 % Design B energy-efficient); may be raised to 1300 % (1700 %) if it nuisance-trips</td></tr><tr><td>Self-protected (Type E/F) motor controller</td><td>100 % of FLA (no sizing up)</td></tr><tr><td>Group motor</td><td>% × largest motor FLA + sum of other motor FLAs; ≤ group marking</td></tr><tr><td>Motor + CPT on same branch device</td><td>% × motor FLA + CPT primary current</td></tr><tr><td>Heater branch device</td><td>≥ 125 % of load (round up), ≤ 60 A</td></tr>
- <tr><td>Overload (nameplate)</td><td>125 % (SF ≥ 1.15 or ≤ 40 °C rise) / 115 % others; up to 140 % / 130 %</td></tr>
- <tr><td>Branch device rounding</td><td>round <b>up</b> to next standard size</td></tr>
- <tr><td>Feeder device (guide p. 4)</td><td>largest branch device + FLC of all other loads (incl. CPT primary); closest standard size; must not exceed load-side conductor ampacity</td></tr></table></div></div>
+ <div class="card"><h3>Motor branch-circuit rules (max % of table FLC)</h3><div class="tbl">${RULES_TBL}</div></div>
  <div class="card"><h3>FLC versus nameplate amperes (NEC 430.6(A))</h3>${figFlcNp()}${figFl1()}<ul><li><b>Table FLC</b> → conductors, disconnects, short-circuit and ground-fault protection devices.</li><li><b>Nameplate FLA</b> → overload protection (use the value for the connected voltage).</li><li>265 V / 277 V motors: decrease the corresponding 220–240 V table value by <b>13 % / 17 %</b>.</li></ul></div>
  <div class="card"><h3>Table 28.1 – ampacities of insulated conductors (UL 508A)</h3>${t281HTML()}</div>
  <div class="card"><h3>Table 38.1 – ampacities of control circuit conductors (UL 508A)</h3>${t381HTML()}</div>
@@ -1716,9 +1729,9 @@ function renderMath(root){
   try{const tex=toTeX(el.innerHTML);if(!tex)return;
    const h=katex.renderToString(tex,{throwOnError:true,strict:false,trust:false,output:'htmlAndMathml'});
    el.dataset.src=el.textContent;el.innerHTML=h;el.dataset.tex='1'}catch(e){}})}
-(function(){let q=0;const run=()=>{q=0;renderMath(document.getElementById('main'))};
+(function(){let q=0;const run=()=>{q=0;renderMath(document.getElementById('main'));renderMath(document.getElementById('drawers'))};
  const kick=()=>{if(!q)q=requestAnimationFrame(run)};
- new MutationObserver(kick).observe(document.getElementById('main'),{childList:true,subtree:true,attributes:true,attributeFilter:['class','open']});
+ {const mo=new MutationObserver(kick),opt={childList:true,subtree:true,attributes:true,attributeFilter:['class','open']};mo.observe(document.getElementById('main'),opt);mo.observe(document.getElementById('drawers'),opt)}
  document.addEventListener('toggle',kick,true);
  window.addEventListener('load',kick)})();
 
@@ -1821,6 +1834,30 @@ function calcToggle(open){CALC.open=open??!CALC.open;document.body.classList.tog
   if(t.id==='cclrv'){CALC.vars={};calcSave();calcRender()}
   const ex=t.closest('[data-ex]');if(ex){calcRun(ex.dataset.ex)}});
  calcRender();if(CALC.open)calcToggle(true);
+})();
+
+/* ============================== bookmark tabs: slide-out reference drawers ============================== */
+function flcTblHTML(T,volts){const hps=[...new Set(volts.flatMap(v=>Object.keys(T[v]).map(Number)))].sort((a,b)=>a-b);
+ return `<div class="tbl"><table><tr><th>hp</th>${volts.map(v=>`<th>${v} V</th>`).join('')}</tr>${hps.map(h=>`<tr><td>${h}</td>${volts.map(v=>`<td>${T[v][h]??'–'}</td>`).join('')}</tr>`).join('')}</table></div>`}
+const DRAWERS=[
+ {id:'flc',t:'Motor FLC',title:'Motor full-load current (A)',c:'#3da53d',tx:'#fff',html:()=>`<h4>3-phase – NEC 430.250 / UL 508A Table 50.1</h4>${flcTblHTML(FLC3,[208,230,460,575])}<h4>Single-phase – NEC 430.248</h4>${flcTblHTML(FLC1,[115,230])}
+  <ul class="note"><li><b>Table FLC</b> → conductors, disconnects, short-circuit &amp; ground-fault devices. <b>Nameplate FLA</b> → overload.</li><li>265 V / 277 V motors: decrease the 220–240 V value by <b>13 % / 17 %</b>.</li><li>480 V systems use the 460 V column; 240 V uses 230 V; 600 V uses 575 V.</li></ul>`},
+ {id:'prot',t:'Protection',title:'Branch protection & rounding',c:'#d63031',tx:'#fff',html:()=>`<h4>Motor branch-circuit rules (% of table FLC)</h4><div class="tbl">${RULES_TBL}</div><h4>Round up or down?</h4>${UPDOWN(true)}<h4>Standard sizes (NEC 240.6)</h4><div class="chips">${STD.map(v=>`<span class="chip${v<15?' fuse':''}">${v} A</span>`).join('')}</div><p class="note">Amber = fuse sizes only; breakers start at 15 A.</p>`},
+ {id:'wire',t:'Wire',title:'Conductor ampacities',c:'#e9a416',tx:'#2b1d00',html:()=>`<h4>Table 28.1 – insulated conductors (UL 508A)</h4>${t281HTML()}<h4>Table 38.1 – control circuit conductors</h4>${t381HTML()}`},
+ {id:'sccr',t:'SCCR',title:'SCCR tables – SB4.1 & SB4.2',c:'#c2368f',tx:'#fff',html:()=>`<h4>Table SB4.1 – default component SCCR</h4>${sb41HTML()}<h4>Table SB4.2 – fuse peak let-through</h4>${sb42HTML()}<h4>SCCR does not apply to (SB4.2.1)</h4><ul class="note"><li>Transformers, reactors, CTs, dry-type capacitors, resistors, varistors, one-port SPDs, voltmeters</li><li>Wye-delta “S” contactor · cord-and-plug enclosure AC · wiring ferrules · EMI/RFI/line filters on power conversion equipment</li></ul>`},
+ {id:'xf',t:'Transformer',title:'Transformers – protection & fault current',c:'#4f9fe0',tx:'#082033',html:()=>`<h4>Overcurrent protection – NEC 450.3(B)</h4>${T450}<p class="note">Next size up only in the 125 % rows.</p><h4>Rated current &amp; fault current</h4><ul><li>Single-phase: <code>I = kVA × 1000 ÷ V</code></li><li>3-phase: <code>I = kVA × 1000 ÷ (√3 × V)</code></li><li>Fault current: <code>I<sub>sc</sub> = I<sub>FL</sub> ÷ %Z</code></li></ul><h4>Table SB4.3 – single-phase secondary current</h4>${sbTxHTML(SB43,'Z = 2.1 %, rounded up. * line-to-neutral (1.5 × line-to-line).')}<h4>Table SB4.4 – three-phase secondary current</h4>${sbTxHTML(SB44,'Z = 2.1 %, rounded up. * line-to-neutral (1.25 × line-to-line).')}`}
+];
+(function(){
+ const root=$('#drawers');
+ root.innerHTML=DRAWERS.map((d,i)=>`<section class="drawer" id="dr-${d.id}" style="--tc:${d.c};--tx:${d.tx};--i:${i}" aria-label="${d.title}">
+  <button class="dtab" aria-expanded="false" aria-controls="dr-${d.id}" title="${d.title}">${d.t}</button>
+  <div class="dhead"><b>${d.title}</b><button class="dx" aria-label="Close">✕</button></div><div class="dbody"></div></section>`).join('');
+ const close=()=>$$('.drawer.open',root).forEach(x=>{x.classList.remove('open');$('.dtab',x).setAttribute('aria-expanded','false')});
+ const open=el=>{const wasOpen=el.classList.contains('open');close();if(wasOpen)return;
+  const body=$('.dbody',el);if(!body.dataset.f){body.innerHTML=DRAWERS.find(d=>'dr-'+d.id===el.id).html();body.dataset.f='1'}
+  el.classList.add('open');$('.dtab',el).setAttribute('aria-expanded','true')};
+ root.addEventListener('click',e=>{const el=e.target.closest('.drawer');if(!el)return;if(e.target.closest('.dtab'))open(el);else if(e.target.closest('.dx'))close()});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&e.target.id!=='cin')close()});
 })();
 
 updateScore();render();
