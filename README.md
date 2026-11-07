@@ -1,6 +1,6 @@
 # UL 508A MTR exam study site
 
-Open **`ul508a-mtr-study.html`** in a browser (single self-contained file, works offline, no build step).
+Open **`ul508a-mtr-study.html`** in a browser (works offline, no build step). Keep the `vendor/katex/` folder next to it: it holds [KaTeX](https://katex.org) (MIT, v0.16.11) used to typeset the math. Without it the page still works and shows the formulas as plain text.
 
 - **Exam Parts** – questions organised like the exam: Part 1 General UL 508A Information, Part 2 Enclosed Panels and Power Circuits, Part 3 Control Circuits / Ratings / Markings / Enclosures, Part 4 SCCR – each with study notes, practice and a quiz
 - **Three dedicated practice sections** – *Power Transformers*, *Control Transformers* and *SCCR* – each with a step-by-step lesson, then practice questions with hidden answers and full math (plus a quiz-this-section button)
@@ -11,3 +11,5 @@ Open **`ul508a-mtr-study.html`** in a browser (single self-contained file, works
 
 Table values and percentages are study aids – verify against the edition of UL 508A / NEC your exam uses.
 Topics are cross-checked against the Eaton *Control panel design guide (UL 508A)* and transformer-current articles from Larson Electronics and Industrial Monitor Direct.
+
+Math: formulas written as plain text inside `<code>` elements are converted to LaTeX at runtime (fractions, subscripts, units) and rendered with KaTeX; anything the converter can't parse is left as plain text.

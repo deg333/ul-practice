@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>UL 508A MTR Exam Study Guide</title>
+<link rel="stylesheet" href="vendor/katex/katex.min.css">
+<script defer src="vendor/katex/katex.min.js"></script>
 <style>
 :root{--bg:#f6f7f9;--card:#fff;--ink:#16202c;--mut:#5b6877;--line:#d9dee5;--acc:#1f5fd1;--acc2:#e8f0fe;--ok:#14803c;--okbg:#e6f6ec;--bad:#c62828;--badbg:#fdecec;--warn:#9a6700;--warnbg:#fff6dd;--ph-a:#d63031;--ph-b:#2563eb;--ph-c:#15803d;--cur:#b7791f;--code:#eef1f5}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0e1319;--card:#171e27;--ink:#e6ebf1;--mut:#9aa7b6;--line:#2a3441;--acc:#6ea0ff;--acc2:#1a2a47;--ok:#4ade80;--okbg:#10301e;--bad:#ff7b7b;--badbg:#3a1717;--warn:#f2c14e;--warnbg:#33290d;--ph-a:#ff6b6b;--ph-b:#6ea0ff;--ph-c:#4ade80;--cur:#f2c14e;--code:#222c38}}
@@ -56,6 +58,7 @@ canvas{width:100%;display:block;background:var(--card);border:1px solid var(--li
 .sub button.on{background:var(--acc2);border-color:var(--acc);color:var(--acc);font-weight:600}
 @media(max-width:560px){body{font-size:15px}.card{padding:12px}}
 .les{border:1px solid var(--line);border-radius:10px;margin:8px 0;background:var(--card)}.les summary{cursor:pointer;padding:9px 12px;font-weight:600}.les .lb{padding:2px 14px 12px}.les p{margin:6px 0}.les ul,.les ol{margin:6px 0;padding-left:22px}
+code[data-tex="1"]{background:none;padding:0;font-family:inherit;font-size:1.05em}.katex{font-size:1.08em}.steps li,.les li{margin:9px 0;line-height:1.75}.steps li:has(.katex-html){line-height:1.95}code[data-tex="1"]{display:inline-block;vertical-align:middle}.steps code[data-tex="1"] .katex{font-size:1.12em}
 </style>
 </head>
 <body>
@@ -898,9 +901,9 @@ function simMotor(box){
   const base=np||flc,olp=sf>=1.15?1.25:1.15,ol=base*olp,ol2=base*(sf>=1.15?1.4:1.3);
   $('#mo',box).innerHTML=`<h3 style="margin-top:0">Result: ${hp} hp, ${v} V, ${$('#ph',box).value==='3'?'3-phase':'single-phase'}</h3>
   <ol class="steps"><li>Table FLC = <b>${flc} A</b></li>
-  <li>Conductor ampacity = 125 % × FLC = ${fmt(flc,2)} × 1.25 = <b>${fmt(cond)} A</b> → <b>${wire} AWG Cu</b> (${cond>100?'75':'60'} °C column)</li>
-  <li>Branch device max = ${pct} % × ${flc} = <b>${fmt(maxD)} A</b>${pct===800?' (adjustable MCP setting)':` → next standard size up: <b>${dev} A</b>`}</li>
-  <li>Overload (${np?'nameplate '+np+' A':'table FLC used – enter nameplate FLA for accuracy'}), SF ${sf}: max ${olp*100} % = <b>${fmt(ol)} A</b>; may be raised to ${(sf>=1.15?140:130)} % = ${fmt(ol2)} A if it trips on starting</li></ol>
+  <li>Conductor ampacity = 125 % × FLC: <code>${fmt(flc,2)} × 1.25 = ${fmt(cond)} A</code> → <b>${wire} AWG Cu</b> (${cond>100?'75':'60'} °C column)</li>
+  <li>Branch device max: <code>${pct} % × ${flc} = ${fmt(maxD)} A</code>${pct===800?' (adjustable MCP setting)':` → next standard size up: <b>${dev} A</b>`}</li>
+  <li>Overload (${np?'nameplate '+np+' A':'table FLC used – enter nameplate FLA for accuracy'}), SF ${sf}: max <code>${olp*100} % × ${fmt(base,2)} = ${fmt(ol)} A</code>; may be raised to ${(sf>=1.15?140:130)} % = ${fmt(ol2)} A if it trips on starting</li></ol>
   <svg viewBox="0 0 560 92" style="width:100%;max-width:640px" aria-label="motor branch circuit one-line"><line x1="10" y1="46" x2="540" y2="46" stroke="var(--ink)" stroke-width="2"/>
   ${[['Disconnect',70],['Branch SCPD '+(pct===800?fmt(maxD)+'A':dev+'A'),190],['Contactor',310],['Overload '+fmt(ol)+'A',420]].map(b=>`<rect x="${b[1]-48}" y="26" width="96" height="40" rx="6" fill="var(--acc2)" stroke="var(--acc)"/><text x="${b[1]}" y="51" font-size="11" text-anchor="middle">${b[0]}</text>`).join('')}
   <circle cx="515" cy="46" r="22" fill="var(--card)" stroke="var(--ink)" stroke-width="2"/><text x="515" y="51" font-size="14" text-anchor="middle" font-weight="700">M</text><text x="515" y="88" font-size="11" text-anchor="middle">${flc} A FLC</text>
@@ -1028,18 +1031,18 @@ function simXfmr(box){
   const pbMax=Ip*2.5,pb=nextDown(pbMax,CTRL),sp=Is>=9?1.25:1.67,sMax=Is*sp,sd=rate(Is,sMax,CTRL);
   const reflected=(pOnly.down||0)*Vp/Vs;
   g('#po').innerHTML=`<div class="grid"><div><div class="note">Primary rated current</div><div class="big">${f(Ip)} A</div></div><div><div class="note">Secondary rated current</div><div class="big">${f(Is)} A</div></div></div>
-  <ol class="steps"><li><b>Currents:</b> I<sub>p</sub> = ${kva}×1000 ÷ (${ph==='3'?'1.732 × ':''}${Vp}) = ${f(Ip)} A; I<sub>s</sub> = ${kva}×1000 ÷ (${ph==='3'?'1.732 × ':''}${Vs}) = ${f(Is)} A.</li>
-  <li><b>A. Primary-only protection:</b> I<sub>p</sub> ${Ip>=9?'≥ 9 A → 125 %':Ip>=2?'is 2–9 A → 167 %':'&lt; 2 A → 300 %'} → max ${f(Ip)} × ${pp} = <b>${f(pOnlyMax)} A</b> → largest standard not above: <b>${pOnly.down} A</b>${pp===1.25?`; next size up (<b>${pOnly.up} A</b>) is also permitted in the 125 % row`:'; no “next size up” permission in this row (a guide may still round to the closest size, here '+pOnly.up+' A)'}.
+  <ol class="steps"><li><b>Currents:</b> <code>I<sub>p</sub> = ${kva}×1000 ÷ (${ph==='3'?'1.732 × ':''}${Vp}) = ${f(Ip)} A</code>; <code>I<sub>s</sub> = ${kva}×1000 ÷ (${ph==='3'?'1.732 × ':''}${Vs}) = ${f(Is)} A</code>.</li>
+  <li><b>A. Primary-only protection:</b> I<sub>p</sub> ${Ip>=9?'≥ 9 A → 125 %':Ip>=2?'is 2–9 A → 167 %':'&lt; 2 A → 300 %'} → max <code>${f(Ip)} × ${pp} = ${f(pOnlyMax)} A</code> → largest standard not above: <b>${pOnly.down} A</b>${pp===1.25?`; next size up (<b>${pOnly.up} A</b>) is also permitted in the 125 % row`:'; no “next size up” permission in this row (a guide may still round to the closest size, here '+pOnly.up+' A)'}.
   <br><span class="note">Seen from the secondary, ${pOnly.down} A on the primary is ≈ ${f(reflected)} A (${f(reflected/Is*100)} % of I<sub>s</sub>)${ph==='3'?' for a balanced 3-phase load – a single-phase load on a delta–wye secondary sees ≈ 1/0.58 more, so the secondary wiring is not protected':''}.</span></li>
-  <li><b>B. Primary + secondary protection:</b> primary max = 250 % × ${f(Ip)} = <b>${f(pbMax)} A</b> → <b>${pb} A</b>.<br>
-  Secondary: I<sub>s</sub> ${Is>=9?'≥ 9 A → 125 %':'&lt; 9 A → 167 %'} → max ${f(Is)} × ${sp} = <b>${f(sMax)} A</b> → largest standard not above: <b>${sd.down} A</b>${sp===1.25?`; next size up (<b>${sd.up} A</b>) is also permitted`:''}.</li>
+  <li><b>B. Primary + secondary protection:</b> primary max = <code>250 % × ${f(Ip)} = ${f(pbMax)} A</code> → <b>${pb} A</b>.<br>
+  Secondary: I<sub>s</sub> ${Is>=9?'≥ 9 A → 125 %':'&lt; 9 A → 167 %'} → max <code>${f(Is)} × ${sp} = ${f(sMax)} A</code> → largest standard not above: <b>${sd.down} A</b>${sp===1.25?`; next size up (<b>${sd.up} A</b>) is also permitted`:''}.</li>
   <li><b>Rule of thumb:</b> if a protection value is <i>marked on the transformer</i> (or in the maker’s table, e.g. Eaton p. 46) use that instead.</li></ol>
   <svg viewBox="0 0 560 70" style="width:100%;max-width:640px"><line x1="8" y1="35" x2="552" y2="35" stroke="var(--ink)" stroke-width="2"/>
   <rect x="30" y="16" width="130" height="38" rx="6" fill="var(--acc2)" stroke="var(--acc)"/><text x="95" y="32" font-size="11" text-anchor="middle" font-weight="700">Primary ≤ ${pb} A (B)</text><text x="95" y="46" font-size="10" text-anchor="middle">or ≤ ${pOnly.down} A alone (A)</text>
   <circle cx="225" cy="35" r="20" fill="var(--card)" stroke="var(--ink)" stroke-width="2"/><circle cx="253" cy="35" r="20" fill="var(--card)" stroke="var(--ink)" stroke-width="2"/>
   <rect x="320" y="16" width="130" height="38" rx="6" fill="var(--acc2)" stroke="var(--acc)"/><text x="385" y="39" font-size="11" text-anchor="middle" font-weight="700">Secondary ≤ ${sd.down} A (B)</text></svg>`;
   const fl=Is,isc=fl/z,ok=[5,10,14,18,22,25,30,35,42,50,65,85,100,200].find(x=>x*1000>=isc);
-  g('#fo').innerHTML=`<ol class="steps"><li>I<sub>FL</sub> (secondary) = ${f(fl)} A</li><li>I<sub>sc</sub> = I<sub>FL</sub> ÷ %Z = ${f(fl)} ÷ ${z} = <b>${fmt(isc,0)} A = ${f(isc/1000)} kA</b></li></ol>
+  g('#fo').innerHTML=`<ol class="steps"><li><code>I<sub>FL</sub> = ${f(fl)} A</code> (secondary rated current)</li><li><code>I<sub>sc</sub> = I<sub>FL</sub> ÷ %Z = ${f(fl)} ÷ ${z} = ${fmt(isc,0)} A = ${f(isc/1000)} kA</code></li></ol>
   <p>A panel fed from this secondary needs SCCR ≥ <b>${f(isc/1000)} kA</b> → next common rating <b>${ok||'>200'} kA</b>.</p>
   <svg viewBox="0 0 320 52" style="width:100%;max-width:420px"><rect x="0" y="14" width="320" height="16" rx="8" fill="var(--code)"/><rect x="0" y="14" width="${Math.min(isc/1000/100,1)*320}" height="16" rx="8" fill="var(--bad)"/><line x1="16" x2="16" y1="6" y2="38" stroke="var(--ink)"/><text x="20" y="49" font-size="10">5 kA default</text><text x="316" y="10" font-size="10" text-anchor="end">scale 0–100 kA</text></svg>
   <p class="note">Worst case at the transformer terminals; conductor and source impedance reduce it downstream.</p>`};
@@ -1054,7 +1057,7 @@ power:{title:'Power Transformers',sim:'xfmr',blurb:'Rated current, primary-only 
  lesson:()=>
  D('1. Rated current – the starting point',`<p>Transformers are rated in <b>kVA</b>. Rated current on each side uses that side’s <b>line-to-line</b> voltage:</p>
  <ul><li>Single-phase: <code>I = kVA × 1000 ÷ V</code></li><li>3-phase: <code>I = kVA × 1000 ÷ (1.732 × V<sub>L-L</sub>)</code></li><li>From kW: <code>kVA = kW ÷ PF</code></li></ul>
- <p>kVA is the same on both sides (ideal), so the <b>higher-voltage side has the lower current</b>. <i>Example: 75 kVA, 480 → 208Y/120 V: I<sub>p</sub> = 75 000 ÷ (1.732×480) = 90.2 A; I<sub>s</sub> = 75 000 ÷ (1.732×208) = 208.2 A.</i></p>
+ <p>kVA is the same on both sides (ideal), so the <b>higher-voltage side has the lower current</b>. <i>Example: 75 kVA, 480 → 208Y/120 V:</i> <code>I<sub>p</sub> = 75 000 ÷ (1.732×480) = 90.2 A</code>; <code>I<sub>s</sub> = 75 000 ÷ (1.732×208) = 208.2 A</code>.</p>
  <p class="note">Mistakes: using kW for kVA; using 120 V instead of 208 V; forgetting √3; two legs of a 3-phase supply = single-phase formula.</p>`,true)+
  D('2. Overcurrent protection rules (NEC 450.3(B), 1000 V or less)',`<p>Percentages of <b>rated</b> current:</p>${T450}<p><b>When “next size up” applies:</b> only in the 125 % rows (primary-only ≥ 9 A, and secondary ≥ 9 A). In the 250 %, 167 % and 300 % rows choose the largest standard size not exceeding the result.</p>
  <p><b>Why two methods?</b> <u>Primary only</u> is simplest, but then the primary device must be small (125 %) because it is the only overload protection. <u>Primary + secondary</u>: the secondary device (125 %) protects the transformer and the secondary conductors, so the primary can be 250 % and ride through <b>inrush</b>.</p>${figXf(2)}
@@ -1162,6 +1165,90 @@ function render(){
 $('#nav').onclick=e=>{const b=e.target.closest('button');if(b)go(b.dataset.v)};
 window.addEventListener('hashchange',render);
 $('#theme').onclick=()=>{const r=document.documentElement,d=r.dataset.theme==='dark'||(!r.dataset.theme&&matchMedia('(prefers-color-scheme:dark)').matches);r.dataset.theme=d?'light':'dark'};
+/* ============================== math rendering (KaTeX) ============================== */
+/* Converts the plain-text formulas in <code> elements (e.g. "I<sub>p</sub> = 500 ÷ 480 = 1.04 A") to LaTeX
+   and renders them with KaTeX. Anything it cannot convert safely stays as the original text. */
+const MU=new Set(['A','V','W','s','Hz','kA','kV','kW','VA','kVA','hp','kvar','var','ft','in','mm','AWG','kcmil','kHz','mA']);
+const REL={'=':'=','≈':'\\approx','≥':'\\geq','≤':'\\leq','→':'\\rightarrow','<':'<','>':'>','+':'+','−':'-','-':'-','–':'-',',':',\\ ',':':':',';':';'};
+function mjSub(t){return '\\mathrm{'+t.replace(/-/g,'\\text{-}').replace(/%/g,'\\%')+'}'}
+function mjTok(s){
+ const T=[];let i=0,m;
+ const num=/\d{1,3}(?:[ ,]\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?/y,id=/([A-Za-z]+)(?:\u0001([^\u0002]*)\u0002)?(?:\u0003([^\u0004]*)\u0004)?/y;
+ while(i<s.length){const c=s[i];
+  if(c===' '){i++;continue}
+  num.lastIndex=i;if(/\d/.test(c)&&(m=num.exec(s))){T.push({t:'num',v:m[0].replace(/[ ,]/g,'\\,')});i=num.lastIndex;
+   if(s[i]==='\u0003'){const e=s.indexOf('\u0004',i);T[T.length-1].sup=s.slice(i+1,e);i=e+1}continue}
+  id.lastIndex=i;if(/[A-Za-z]/.test(c)&&(m=id.exec(s))){T.push({t:'id',v:m[1],sub:m[2],sup:m[3]});i=id.lastIndex;continue}
+  if('()'.includes(c)){T.push({t:c==='('?'lp':'rp'});i++;continue}
+  if(c==='×'||c==='÷'){T.push({t:'op',v:c});i++;continue}
+  if(c in REL){T.push({t:'rel',v:c});i++;continue}
+  if(c==='%'){T.push({t:'pct'});i++;continue}
+  if(c==='√'){T.push({t:'sqrt'});i++;continue}
+  if(c==='²'||c==='³'){T.push({t:'sup',v:c==='²'?'2':'3'});i++;continue}
+  if(c==='°'){T.push({t:'raw',v:'^{\\circ}'});i++;continue}
+  if(c==='✔'){T.push({t:'raw',v:'\\checkmark'});i++;continue}
+  if(c==='✘'){T.push({t:'raw',v:'\\times'});i++;continue}
+  if(c==='/'){T.push({t:'raw',v:'/'});i++;continue}
+  if(c==='.'){T.push({t:'raw',v:'.'});i++;continue}
+  return null}
+ return T}
+function mjAtoms(T){ // merge units, build groups; returns nested list or null
+ const out=[];
+ for(let k=0;k<T.length;k++){const x=T[k],p=out[out.length-1];
+  if(x.t==='id'&&p&&p.t==='num'&&!p.unit&&MU.has(x.v)&&!x.sub){p.unit='\\,\\mathrm{'+x.v+'}'+(x.sup?'^{'+x.sup+'}':'');continue}
+  if(x.t==='pct'&&p&&p.t==='num'&&!p.unit){p.unit='\\,\\%';continue}
+  if(x.t==='sup'&&p){p.sup2=(p.sup2||'')+x.v;continue}
+  out.push(Object.assign({},x))}
+ const st=[[]];
+ for(const x of out){if(x.t==='lp')st.push([]);else if(x.t==='rp'){if(st.length<2)return null;const g=st.pop();st[st.length-1].push({t:'grp',in:g})}else st[st.length-1].push(x)}
+ return st.length===1?st[0]:null}
+function mjAtom(x){
+ if(x.t==='num')return x.v+(x.sup?'^{'+x.sup+'}':'')+(x.sup2?'^{'+x.sup2+'}':'')+(x.unit||'');
+ if(x.t==='id'){const base=x.v.length===1?x.v:'\\mathrm{'+x.v+'}';return base+(x.sub!=null?'_{'+mjSub(x.sub)+'}':'')+(x.sup?'^{'+x.sup+'}':'')+(x.sup2?'^{'+x.sup2+'}':'')}
+ if(x.t==='raw')return x.v;if(x.t==='pct')return '\\%';
+ return ''}
+function mjSeq(items){ // split at relations, then handle fractions per term
+ const parts=[];let cur=[];
+ for(const x of items){if(x.t==='rel'){parts.push(mjTerm(cur));parts.push(REL[x.v]);cur=[]}else cur.push(x)}
+ parts.push(mjTerm(cur));return parts.join(' ')}
+function mjFac(e,bare){return e.t==='grp'?(bare?mjSeq(e.in):'\\left('+mjSeq(e.in)+'\\right)'):mjAtom(e)}
+function mjTerm(items){
+ const it=[];
+ for(let k=0;k<items.length;k++){const x=items[k];
+  if(x.t==='sqrt'&&items[k+1]){const n=items[++k];it.push({t:'raw',v:'\\sqrt{'+(n.t==='grp'?mjSeq(n.in):mjAtom(n))+'}'})}else it.push(x)}
+ const fs=[],ops=[];let f=[];
+ for(const x of it){if(x.t==='op'){fs.push(f);ops.push(x.v);f=[]}else f.push(x)}
+ fs.push(f);
+ const full=fs.map(g=>g.map(a=>mjFac(a,g.length===1&&a.t==='grp'&&false)).join(' '));
+ const bare=fs.map(g=>g.length===1?mjFac(g[0],true):g.map(a=>mjFac(a,false)).join(' '));
+ const keep=fs.map(g=>g.map(a=>mjFac(a,false)).join(' '));
+ if(!ops.length)return keep[0];
+ let acc=keep[0],accBare=bare[0];
+ for(let k=0;k<ops.length;k++){
+  if(ops[k]==='×'){acc=acc+' \\times '+keep[k+1];accBare=acc}
+  else{acc='\\dfrac{'+accBare+'}{'+bare[k+1]+'}';accBare=acc}}
+ return acc}
+function toTeX(html){
+ let s=html.replace(/<sub>(.*?)<\/sub>/g,'\u0001$1\u0002').replace(/<sup>(.*?)<\/sup>/g,'\u0003$1\u0004').replace(/<[^>]+>/g,'').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').replace(/&nbsp;/g,' ').trim();
+ if(!/[=×÷≈√→]/.test(s)&&!/^[+−-]?\s*[\d.,\s]+\s*[A-Za-z%]{0,4}$/.test(s))return null;
+ if(/[a-z]{4,}/.test(s.replace(/kvar/g,'')))return null;
+ const T=mjTok(s);if(!T||!T.length)return null;
+ const A=mjAtoms(T);if(!A)return null;
+ return mjSeq(A)}
+function renderMath(root){
+ if(!window.katex)return;
+ root.querySelectorAll('code:not([data-tex])').forEach(el=>{
+  if(el.closest('.reveal.hide')||el.closest('details.les:not([open])'))return;
+  el.dataset.tex='0';
+  try{const tex=toTeX(el.innerHTML);if(!tex)return;
+   const h=katex.renderToString(tex,{throwOnError:true,strict:false,trust:false,output:'htmlAndMathml'});
+   el.dataset.src=el.textContent;el.innerHTML=h;el.dataset.tex='1'}catch(e){}})}
+(function(){let q=0;const run=()=>{q=0;renderMath(document.getElementById('main'))};
+ const kick=()=>{if(!q)q=requestAnimationFrame(run)};
+ new MutationObserver(kick).observe(document.getElementById('main'),{childList:true,subtree:true,attributes:true,attributeFilter:['class','open']});
+ document.addEventListener('toggle',kick,true);
+ window.addEventListener('load',kick)})();
+
 updateScore();render();
 </script>
 </body>
