@@ -27,3 +27,6 @@ Part 3 notes and questions were rewritten from the Siemens reference manual (08/
 
 ## 3-Phase Phasors page
 New **3-Phase Phasors** tab with six animated, interactive diagrams (from PDH Online E431, “The Square Root of Three in Electrical Calculations”): rotating phasors and sine waves; V<sub>L-L</sub> = √3 V<sub>L-N</sub> built by vector subtraction; delta line currents (balanced vs unbalanced, with a power-factor slider); wye neutral current as a tip-to-tail vector sum; closed vs open delta banks; and why the voltage-drop formula has √3. Six matching practice questions (ph-1 to ph-6) are in the question bank.
+
+## Control transformer protection corrected to UL 508A Tables 42.1 / 42.2
+Control-transformer items (questions, lessons, simulator) now use UL 508A Table 42.1 (primary only: ≥ 9 A 125 %, 2–8.99 A 167 %, < 2 A 500 %) and Table 42.2 (primary + secondary: primary 250 %, or 500 % below 2 A; secondary 125 % / 167 %). Power transformers keep NEC 450.3(B) (300 % below 2 A). The simulator has a transformer-type selector.
