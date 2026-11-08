@@ -30,3 +30,6 @@ New **3-Phase Phasors** tab with six animated, interactive diagrams (from PDH On
 
 ## Control transformer protection corrected to UL 508A Tables 42.1 / 42.2
 Control-transformer items (questions, lessons, simulator) now use UL 508A Table 42.1 (primary only: ≥ 9 A 125 %, 2–8.99 A 167 %, < 2 A 500 %) and Table 42.2 (primary + secondary: primary 250 %, or 500 % below 2 A; secondary 125 % / 167 %). Power transformers keep NEC 450.3(B) (300 % below 2 A). The simulator has a transformer-type selector.
+
+## Heater service problem tab
+The 3-Phase Phasors page now has two tabs. "Problem: heater service" works the 230 V, 3-phase unbalanced heater example (editable counts and watts): leg and line currents by vector difference, maximum demand, 125 percent continuous sizing, feeder and branch circuit breakers, an animated phasor construction, and a one-line diagram. Questions ph-7 and ph-8 match it.
