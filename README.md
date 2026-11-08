@@ -21,3 +21,6 @@ Table values and percentages are study aids – verify against the edition of UL
 Topics are cross-checked against the Eaton *Control panel design guide (UL 508A)* and transformer-current articles from Larson Electronics and Industrial Monitor Direct.
 
 Math: formulas written as plain text inside `<code>` elements are converted to LaTeX at runtime (fractions, subscripts, units) and rendered with KaTeX; anything the converter can't parse is left as plain text.
+
+## Part 3 sourced from the Siemens manual
+Part 3 notes and questions were rewritten from the Siemens reference manual (08/2014): Class 1 / Class 2 / low-voltage limited energy limits (Table 7-1), control circuit protection (Tables 41.1, 41.2, 42.1, 42.2), circuit grouping and separation, wire colour and sizing, nameplate, field-wiring terminal markings, warning labels and device markings. Each question cites the manual's chapter and page. Items that disagree with the Eaton guide (Table 41 values; 500 % vs 300 % for CPT primary < 2 A) are flagged in the text. The manual is from 2014, so confirm against the edition your exam uses.
