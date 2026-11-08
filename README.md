@@ -24,3 +24,6 @@ Math: formulas written as plain text inside `<code>` elements are converted to L
 
 ## Part 3 sourced from the Siemens manual
 Part 3 notes and questions were rewritten from the Siemens reference manual (08/2014): Class 1 / Class 2 / low-voltage limited energy limits (Table 7-1), control circuit protection (Tables 41.1, 41.2, 42.1, 42.2), circuit grouping and separation, wire colour and sizing, nameplate, field-wiring terminal markings, warning labels and device markings. Each question cites the manual's chapter and page. Items that disagree with the Eaton guide (Table 41 values; 500 % vs 300 % for CPT primary < 2 A) are flagged in the text. The manual is from 2014, so confirm against the edition your exam uses.
+
+## 3-Phase Phasors page
+New **3-Phase Phasors** tab with six animated, interactive diagrams (from PDH Online E431, “The Square Root of Three in Electrical Calculations”): rotating phasors and sine waves; V<sub>L-L</sub> = √3 V<sub>L-N</sub> built by vector subtraction; delta line currents (balanced vs unbalanced, with a power-factor slider); wye neutral current as a tip-to-tail vector sum; closed vs open delta banks; and why the voltage-drop formula has √3. Six matching practice questions (ph-1 to ph-6) are in the question bank.

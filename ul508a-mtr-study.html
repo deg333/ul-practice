@@ -232,6 +232,7 @@ const SRC_B1='UL 508A SB4.3.1 (clause text supplied) with Tables SB4.3 / SB4.4';
 const SRC_B2='UL 508A SB4.3.2 (clause text supplied)';
 const SRC_B='UL 508A SB4.3.3 (clause text supplied) with Table SB4.1 / SB4.2';
 const SRC_EL='Eaton UL 508A SCCR course slides (supplied)';
+const PH_SRC='PDH Online E431 “The Square Root of Three in Electrical Calculations” (D. A. Snyder, PE)';
 const SRC_W='SCCR worksheets and test-taker notes (supplied)';
 const SRC_SI='Siemens reference manual “A Guide for Practical Use” (08/2014; UL 508A / NFPA 79 as then in force)';
 const SRC_S='UL 508A Supplement SB tables (SB4.1/SB4.2 from the Cooper Bussmann 2008 reprint; SB4.3/SB4.4 from the 2021 edition)';
@@ -1090,6 +1091,37 @@ const Q=[
  a:'S = <b>23.9 kVA</b>, P = <b>19.1 kW</b>, Q = <b>14.3 kvar</b>.',
  steps:['<code>S = √3 V I = √3 × 460 × 30 = 23 902 VA</code>.','<code>P = S × PF = 23 902 × 0.8 = 19 122 W</code>.','<code>Q = S × sin φ = 23 902 × 0.6 = 14 341 var</code> (cos φ = 0.8 → sin φ = 0.6).'],
  why:'Check: S² = P² + Q² (power triangle).',fig:'tri',sim:'wave'},
+/* ---------- 3-PHASE PHASORS ---------- */
+{id:'ph-1',t:'math',d:2,src:PH_SRC+' – pp. 4–6',q:'On a <b>480Y/277 V</b> system, phasor V<sub>an</sub> is 277 V. What is the size of V<sub>ab</sub> = V<sub>an</sub> − V<sub>bn</sub>, and what is its angle relative to V<sub>an</sub>?',
+ num:{v:480,tol:0.01,u:'V'},
+ a:'<b>480 V</b>, leading V<sub>an</sub> by <b>30°</b>.',
+ steps:['V<sub>an</sub> and V<sub>bn</sub> are both 277 V and 120° apart.','Subtracting two equal phasors 120° apart gives a side of the equilateral triangle: <code>2 × 277 × cos 30° = 480 V</code>.','Equivalently <code>V<sub>L-L</sub> = √3 × V<sub>L-N</sub> = √3 × 277 = 480 V</code>.'],
+ why:'Right-triangle view: half of 480 V is 240 V, and <code>cos 30° = 240 ÷ 277 = 0.866 = √3 ÷ 2</code>. The same √3 holds for 208Y/120, 400Y/230 and 600Y/347.',sim:'wave'},
+{id:'ph-2',t:'math',d:2,src:PH_SRC+' – pp. 7–9',q:'A <b>balanced 30 kW</b> resistive delta load (three 10 kW legs) is fed at <b>480 V, 3-phase</b>. What is the current in each <b>leg</b> of the delta, and what is the <b>line current</b>?',
+ num:{v:36.1,tol:0.01,u:'A line'},
+ a:'Leg current <b>20.83 A</b>; line current <b>36.1 A</b>.',
+ steps:['Leg: <code>I<sub>ab</sub> = 10 000 ÷ 480 = 20.83 A</code> (no √3 – the full 480 V is across each leg).','Line: <code>I<sub>a</sub> = I<sub>ab</sub> − I<sub>ca</sub></code>, a vector difference of two equal currents 120° apart: <code>20.83 × √3 = 36.1 A</code>.','Shortcut for the balanced load: <code>30 000 ÷ (√3 × 480) = 36.1 A</code>.'],
+ why:'The line currents are equal in size but 120° apart – you do not simply add the magnitudes (20.83 + 20.83).'},
+{id:'ph-3',t:'math',d:3,src:PH_SRC+' – pp. 10–11',q:'An <b>unbalanced</b> resistive delta load at <b>480 V</b> has legs <b>A-B 5 kW, B-C 5 kW, C-A 20 kW</b>. What is the line current in <b>phase A</b>?',
+ num:{v:47.7,tol:0.01,u:'A'},
+ a:'<b>47.7 A</b> (the source shows 47.8 A from rounded leg currents). Line B is only 18.0 A.',
+ steps:['Leg currents: <code>I<sub>ab</sub> = 5000 ÷ 480 = 10.4 A</code>, <code>I<sub>bc</sub> = 10.4 A</code>, <code>I<sub>ca</sub> = 20 000 ÷ 480 = 41.7 A</code>.','<code>I<sub>a</sub> = I<sub>ab</sub> − I<sub>ca</sub></code> (vectors): I<sub>ab</sub> at 0°, I<sub>ca</sub> at +120° → <code>10.4 + 20.8 = 31.25 A</code> real, <code>−36.1 A</code> imaginary.','<code>|I<sub>a</sub>| = √(31.25² + 36.1²) = 47.7 A</code>.'],
+ why:'The balanced shortcut <code>30 000 ÷ (√3 × 480) = 36.1 A</code> is far too low – conductors and protection sized from it would be undersized. Open the <b>3-Phase Phasors</b> page, section 3, to see it.'},
+{id:'ph-4',t:'math',d:3,src:PH_SRC+' – pp. 13–18',q:'A 480Y/277 V wye load with neutral draws <b>6 A, 6 A and 24.1 A</b> in phases A, B and C (resistive). What is the <b>neutral current</b>?',
+ num:{v:18.1,tol:0.02,u:'A'},
+ a:'<b>18.1 A</b>.',
+ steps:['I<sub>n</sub> is the <b>vector</b> sum I<sub>a</sub> + I<sub>b</sub> + I<sub>c</sub> (120° apart).','Formula: <code>I<sub>n</sub> = √(A² + B² + C² − AB − BC − CA)</code>.','<code>√(36 + 36 + 580.8 − 36 − 144.6 − 144.6) = √327.6 = 18.1 A</code>.'],
+ why:'If A = B = C the expression is zero: a balanced wye load has <b>no neutral current</b> (12 A, 12 A, 12 A → 0). Without a neutral conductor the load centre would shift and the phase voltages would no longer be 277 V.'},
+{id:'ph-5',t:'xfmr',d:3,src:PH_SRC+' – pp. 18–21',q:'Three <b>5 kVA</b> single-phase transformers form a closed-delta 240 V bank. One is removed (open delta). What is the 3-phase capacity of the open-delta bank?',
+ num:{v:8.66,tol:0.01,u:'kVA'},
+ a:'<b>8.66 kVA</b> (57.7 % of the 15 kVA closed bank).',
+ steps:['Closed delta: <code>3 × 5 = 15 kVA</code>.','Open delta: <code>√3 × 5 = 8.66 kVA</code>.','Ratio: <code>8.66 ÷ 15 = 0.577 = 1 ÷ √3</code> (also 86.6 % of the two remaining transformers, 10 kVA).'],
+ why:'Each winding can still carry only <code>5000 ÷ 240 = 20.83 A</code>, and that is the most any load can draw. Removing one transformer cuts capacity by far more than the one-third you might expect.'},
+{id:'ph-6',t:'math',d:2,src:PH_SRC+' – pp. 22–23',q:'On a balanced 3-phase circuit the <b>line-to-neutral</b> voltage drop is <b>0.5 V</b>. What is the <b>line-to-line</b> voltage drop?',
+ num:{v:0.866,tol:0.01,u:'V'},
+ a:'<b>0.866 V</b>.',
+ steps:['Line-to-line voltage is √3 times line-to-neutral at both the source and the load.','The difference scales the same way: <code>0.5 × √3 = 0.866 V</code>.'],
+ why:'This is why the balanced 3-phase voltage-drop formula is <code>V<sub>drop</sub> = √3 × R × I × L</code>, with R in ohms per unit length, I the line current and L the one-way length.'},
 /* ---------- CONTROLS ---------- */
 {id:'ctrl-1',t:'ctrl',d:2,q:'What is the difference between a <i>branch-circuit</i> protective device and a <i>supplemental</i> protective device? Give examples.',
  a:'<b>Branch-circuit rated</b>: may be the main short-circuit protection for a branch circuit – UL 489 molded-case breakers, UL 248 fuses (Class J, CC, T, RK1/RK5 …).<br><b>Supplemental</b>: only for additional protection <i>downstream</i> of a branch device – UL 1077 breakers (“recognized”/tripping devices), UL 248-14 supplemental fuses (e.g. GMC, midget-type).',
@@ -1922,7 +1954,180 @@ function viewPart(n){
  draw()}
 
 /* ============================== routing ============================== */
-const VIEWS={parts:['Exam Parts',viewParts],part1:['Part 1',()=>viewPart(1)],part2:['Part 2',()=>viewPart(2)],part3:['Part 3',()=>viewPart(3)],part4:['Part 4',()=>viewPart(4)],study:['All Questions',viewStudy],power:['Power Transformers',()=>viewSection('power')],control:['Control Transformers',()=>viewSection('control')],sccr:['SCCR',()=>viewSection('sccr')],quiz:['Quiz',viewQuiz],sim:['Simulators',viewSim],ref:['Reference',viewRef]};
+/* ============================== 3-phase phasor page ============================== */
+const Cx={pol:(m,d)=>[m*Math.cos(d*Math.PI/180),m*Math.sin(d*Math.PI/180)],add:(a,b)=>[a[0]+b[0],a[1]+b[1]],sub:(a,b)=>[a[0]-b[0],a[1]-b[1]],mag:a=>Math.hypot(a[0],a[1]),ang:a=>Math.atan2(a[1],a[0])*180/Math.PI,sc:(a,k)=>[a[0]*k,a[1]*k]};
+function phArrow(x,a,b,col,w,label,o){o=o||{};
+ const dx=b[0]-a[0],dy=b[1]-a[1],L=Math.hypot(dx,dy);if(L<2)return;
+ const ux=dx/L,uy=dy/L,hs=Math.min(10,L*0.4);
+ x.save();x.strokeStyle=col;x.fillStyle=col;x.lineWidth=w;if(o.dash)x.setLineDash(o.dash);
+ x.beginPath();x.moveTo(a[0],a[1]);x.lineTo(b[0]-ux*hs*0.6,b[1]-uy*hs*0.6);x.stroke();x.setLineDash([]);
+ x.beginPath();x.moveTo(b[0],b[1]);x.lineTo(b[0]-ux*hs-uy*hs*0.42,b[1]-uy*hs+ux*hs*0.42);x.lineTo(b[0]-ux*hs+uy*hs*0.42,b[1]-uy*hs-ux*hs*0.42);x.closePath();x.fill();
+ if(label){x.font='600 12px system-ui';x.textAlign='center';x.textBaseline='middle';
+  const off=o.off||13,mx=o.mid?(a[0]+b[0])/2-uy*off:b[0]+ux*off,my=o.mid?(a[1]+b[1])/2+ux*off:b[1]+uy*off;
+  x.fillText(label,mx,my)}
+ x.restore()}
+function phCv(c,h){const o={c,h,w:0,x:c.getContext('2d')};o.fit=()=>{const r=c.getBoundingClientRect(),d=devicePixelRatio||1;o.w=r.width;c.width=Math.round(r.width*d);c.height=Math.round(h*d);o.x.setTransform(d,0,0,d,0,0)};o.fit();o.clear=()=>o.x.clearRect(0,0,o.w,h);return o}
+function phFit(pts,w,h,pad){let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;pts.forEach(p=>{x0=Math.min(x0,p[0]);x1=Math.max(x1,p[0]);y0=Math.min(y0,p[1]);y1=Math.max(y1,p[1])});
+ const bw=Math.max(x1-x0,1e-6),bh=Math.max(y1-y0,1e-6),k=Math.min((w-2*pad)/bw,(h-2*pad)/bh);
+ const ox=w/2-(x0+x1)/2*k,oy=h/2+(y0+y1)/2*k;return{k,P:p=>[ox+p[0]*k,oy-p[1]*k]}}
+const phEase=s=>s*s*(3-2*s);
+function viewPhasor(){
+ const m=$('#main'),SYS=[208,240,400,480,600];
+ const sysOpt=sel=>SYS.map(v=>`<option${v===sel?' selected':''}>${v}</option>`).join('');
+ m.innerHTML=`<div class="card"><h2 style="margin-top:0">3-Phase Phasors &amp; the √3</h2>
+ <p>Three voltages, equal in size and <b>120° apart</b>, rotate together. Every “√3” in 3-phase work comes from adding or subtracting two of these 120° phasors. Each section below is animated – move the sliders and watch the vectors.</p>
+ <div class="grid"><div class="tipbox"><b>Wye (Y)</b><br><code>V<sub>L-L</sub> = √3 × V<sub>L-N</sub></code><br><code>I<sub>line</sub> = I<sub>phase</sub></code></div>
+ <div class="tipbox"><b>Delta (Δ)</b><br><code>V<sub>L-L</sub> = V<sub>phase</sub></code><br><code>I<sub>line</sub> = √3 × I<sub>phase</sub></code> (balanced only)</div>
+ <div class="tipbox"><b>Balanced shortcut</b><br><code>I = kVA × 1000 ÷ (√3 × V)</code><br>Unbalanced loads need vector math.</div></div>
+ <p class="note">Source: PDH Online E431 “The Square Root of Three in Electrical Calculations” (D. A. Snyder, PE). Assumes phase rotation A-B-C (counter-clockwise), resistive loads unless a power-factor slider is shown, and no line-conductor resistance.</p></div>
+
+ <div class="card"><h3 style="margin-top:0">1. Three phasors → three sine waves</h3>
+ <p class="note">The height of each rotating arrow is the instantaneous voltage. Track it across to the wave on the right. At every instant <b>V<sub>a</sub> + V<sub>b</sub> + V<sub>c</sub> = 0</b>.</p>
+ <div class="row" style="gap:12px;margin-bottom:8px"><button class="btn sm" id="aPlay">Pause</button><label>Speed <input id="aSpd" type="range" min="0.05" max="1.2" step="0.05" value="0.3" style="width:110px"></label>
+ <label><input type="checkbox" id="aA" checked> A</label><label><input type="checkbox" id="aB" checked> B</label><label><input type="checkbox" id="aC" checked> C</label></div>
+ <canvas id="cvA" style="width:100%;height:250px;display:block"></canvas><div id="roA" class="note" style="margin-top:6px"></div></div>
+
+ <div class="card"><h3 style="margin-top:0">2. Line-to-line voltage = √3 × line-to-neutral</h3>
+ <p class="note">V<sub>ab</sub> = V<sub>an</sub> − V<sub>bn</sub>. The animation slides −V<sub>bn</sub> onto the tip of V<sub>an</sub>; the sum is V<sub>ab</sub>, longer by √3 and 30° ahead.</p>
+ <div class="fld" style="max-width:240px"><label>System line-to-line voltage (V)</label><select id="bV">${sysOpt(480)}</select></div>
+ <canvas id="cvB" style="width:100%;height:300px;display:block"></canvas><div id="roB" style="margin-top:6px"></div></div>
+
+ <div class="card"><h3 style="margin-top:0">3. Delta load: line current = vector difference of phase currents</h3>
+ <p class="note">I<sub>a</sub> = I<sub>ab</sub> − I<sub>ca</sub>, I<sub>b</sub> = I<sub>bc</sub> − I<sub>ab</sub>, I<sub>c</sub> = I<sub>ca</sub> − I<sub>bc</sub>. For a <b>balanced</b> load the result is √3 × the leg current; for an <b>unbalanced</b> load it is not.</p>
+ <div class="row" style="margin-bottom:8px;gap:8px"><button class="btn sm" data-cp="10,10,10">Balanced 10 / 10 / 10 kW</button><button class="btn sm" data-cp="5,5,20">Unbalanced 5 / 5 / 20 kW</button><span class="note">Show construction of:</span><button class="btn sm on" data-cs="a">I<sub>a</sub></button><button class="btn sm" data-cs="b">I<sub>b</sub></button><button class="btn sm" data-cs="c">I<sub>c</sub></button></div>
+ <div class="grid"><div class="fld"><label>Leg A-B load: <b id="cl0">10</b> kW</label><input id="cK0" type="range" min="1" max="40" step="0.5" value="10"></div>
+ <div class="fld"><label>Leg B-C load: <b id="cl1">10</b> kW</label><input id="cK1" type="range" min="1" max="40" step="0.5" value="10"></div>
+ <div class="fld"><label>Leg C-A load: <b id="cl2">10</b> kW</label><input id="cK2" type="range" min="1" max="40" step="0.5" value="10"></div>
+ <div class="fld"><label>Line voltage (V)</label><select id="cV">${sysOpt(480)}</select></div>
+ <div class="fld"><label>Power factor: <b id="cpfl">1.00</b> (lagging)</label><input id="cPf" type="range" min="0.5" max="1" step="0.01" value="1"></div></div>
+ <div class="grid"><div><div class="note" style="text-align:center">Construction (tip-to-tail)</div><canvas id="cvC1" style="width:100%;height:290px;display:block"></canvas></div>
+ <div><div class="note" style="text-align:center">Resulting line currents (always 120° apart only when balanced)</div><canvas id="cvC2" style="width:100%;height:290px;display:block"></canvas></div></div>
+ <div id="roC" style="margin-top:8px"></div></div>
+
+ <div class="card"><h3 style="margin-top:0">4. Wye load with neutral: neutral current is the vector sum</h3>
+ <p class="note">I<sub>n</sub> = I<sub>a</sub> + I<sub>b</sub> + I<sub>c</sub>. Place the three arrows tip-to-tail; the gap back to the start is the neutral current. Balanced → the triangle closes → <b>I<sub>n</sub> = 0</b>.</p>
+ <div class="row" style="margin-bottom:8px;gap:8px"><button class="btn sm" data-wp="12,12,12">Balanced 12 / 12 / 12 A</button><button class="btn sm" data-wp="6,6,24.1">Unbalanced 6 / 6 / 24.1 A</button></div>
+ <div class="grid"><div class="fld"><label>I<sub>a</sub>: <b id="dl0">12</b> A</label><input id="dI0" type="range" min="0" max="40" step="0.1" value="12"></div>
+ <div class="fld"><label>I<sub>b</sub>: <b id="dl1">12</b> A</label><input id="dI1" type="range" min="0" max="40" step="0.1" value="12"></div>
+ <div class="fld"><label>I<sub>c</sub>: <b id="dl2">12</b> A</label><input id="dI2" type="range" min="0" max="40" step="0.1" value="12"></div></div>
+ <canvas id="cvD" style="width:100%;height:300px;display:block"></canvas><div id="roD" style="margin-top:6px"></div></div>
+
+ <div class="card"><h3 style="margin-top:0">5. Transformer banks: closed delta vs open delta</h3>
+ <p class="note">Open delta (one transformer removed) still gives 3-phase, but only <b>1/√3 = 57.7 %</b> of the closed-delta kVA (√3 × one transformer’s kVA).</p>
+ <div class="grid"><div class="fld"><label>Each single-phase transformer: <b id="eKl">5</b> kVA</label><input id="eK" type="range" min="1" max="50" step="0.5" value="5"></div>
+ <div class="fld"><label>Secondary line voltage (V)</label><select id="eV">${sysOpt(240)}</select></div></div>
+ <div id="roE"></div></div>
+
+ <div class="card"><h3 style="margin-top:0">6. Voltage drop: why V<sub>drop</sub> = √3 × R × I × L</h3>
+ <p class="note">The blue circle is the source line-to-neutral voltage, the red circle the load-end voltage. Both line-to-line voltages are √3 × radius, so the line-to-line drop is √3 × the line-to-neutral drop.</p>
+ <div class="grid"><div class="fld"><label>Source V<sub>L-N</sub>: <b id="fSl">3</b> V</label><input id="fS" type="range" min="1" max="10" step="0.1" value="3"></div>
+ <div class="fld"><label>Drop V<sub>L-N</sub> (conductor): <b id="fDl">0.5</b> V</label><input id="fD" type="range" min="0.05" max="2" step="0.05" value="0.5"></div></div>
+ <canvas id="cvF" style="width:100%;height:300px;display:block"></canvas><div id="roF" style="margin-top:6px"></div></div>`;
+
+ const g=id=>$(id,m),ink=()=>css('--ink'),line=()=>css('--line'),cA=()=>css('--ph-a'),cB=()=>css('--ph-b'),cC=()=>css('--ph-c'),cI=()=>css('--cur'),mut=()=>css('--mut');
+ const cvA=phCv(g('#cvA'),250),cvB=phCv(g('#cvB'),300),cvC1=phCv(g('#cvC1'),290),cvC2=phCv(g('#cvC2'),290),cvD=phCv(g('#cvD'),300),cvF=phCv(g('#cvF'),300);
+ const all=[cvA,cvB,cvC1,cvC2,cvD,cvF];const rs=()=>all.forEach(c=>c.fit());window.addEventListener('resize',rs);
+ let T=0,thA=0,playA=true,spdA=0.3,lastRo=0;
+ const cs={a:1,b:1,c:1};let sel='a';
+ g('#aPlay').onclick=e=>{playA=!playA;e.target.textContent=playA?'Pause':'Play'};
+ g('#aSpd').oninput=e=>spdA=+e.target.value;
+
+ /* ---- readouts for B,C,D,E,F (updated on input only) ---- */
+ const f1=v=>fmt(v,1),f2=v=>fmt(v,2);
+ const upB=()=>{const L=+g('#bV').value,N=L/SQ3;g('#roB').innerHTML=`<div class="grid"><div><div class="note">V<sub>L-N</sub> = V<sub>L-L</sub> ÷ √3</div><div class="big">${f1(N)} V</div></div><div><div class="note">V<sub>L-L</sub> = √3 × V<sub>L-N</sub> (leads V<sub>an</sub> by 30°)</div><div class="big">${f1(SQ3*N)} V</div></div></div>`};
+ let CI={};
+ const upC=()=>{
+  const V=+g('#cV').value,pf=+g('#cPf').value,phi=Math.acos(pf)*180/Math.PI,kw=[0,1,2].map(i=>+g('#cK'+i).value);
+  [0,1,2].forEach(i=>g('#cl'+i).textContent=kw[i]);g('#cpfl').textContent=pf.toFixed(2);
+  const I=kw.map(p=>p*1000/(V*pf));
+  const Iab=Cx.pol(I[0],-phi),Ibc=Cx.pol(I[1],-120-phi),Ica=Cx.pol(I[2],120-phi);
+  const Ia=Cx.sub(Iab,Ica),Ib=Cx.sub(Ibc,Iab),Ic=Cx.sub(Ica,Ibc);
+  CI={Iab,Ibc,Ica,Ia,Ib,Ic};
+  const tot=kw[0]+kw[1]+kw[2],short=tot*1000/(SQ3*V*pf),bal=Math.max(...kw)-Math.min(...kw)<0.01;
+  const row=(n,c)=>`<tr><td>${n}</td><td>${f1(Cx.mag(c))} A</td><td>${f1(Math.abs(Cx.ang(c))<0.05?0:Cx.ang(c))}°</td></tr>`;
+  g('#roC').innerHTML=`<div class="grid"><div class="tbl"><table><tr><th>Leg current</th><th>Size</th><th>Angle</th></tr>${row('I<sub>ab</sub> = kW ÷ V',Iab)}${row('I<sub>bc</sub>',Ibc)}${row('I<sub>ca</sub>',Ica)}</table></div>
+  <div class="tbl"><table><tr><th>Line current</th><th>Size</th><th>Angle</th></tr>${row('I<sub>a</sub> = I<sub>ab</sub> − I<sub>ca</sub>',Ia)}${row('I<sub>b</sub> = I<sub>bc</sub> − I<sub>ab</sub>',Ib)}${row('I<sub>c</sub> = I<sub>ca</sub> − I<sub>bc</sub>',Ic)}</table></div></div>
+  <div class="why" style="margin-top:8px">Shortcut <b>P ÷ (√3 × V × PF)</b> with the total ${f1(tot)} kW gives <b>${f1(short)} A</b>. ${bal?'The load is balanced, so every line current matches the shortcut.':'The load is <b>unbalanced</b>: the actual line currents are '+f1(Cx.mag(Ia))+' / '+f1(Cx.mag(Ib))+' / '+f1(Cx.mag(Ic))+' A – the shortcut is wrong.'}</div>`};
+ let DI={};
+ const upD=()=>{const A=[0,1,2].map(i=>+g('#dI'+i).value);[0,1,2].forEach(i=>g('#dl'+i).textContent=A[i]);
+  const ph=[Cx.pol(A[0],90),Cx.pol(A[1],-30),Cx.pol(A[2],-150)];const In=ph.reduce(Cx.add,[0,0]);DI={ph,In};
+  const [a,b,c]=A,form=Math.sqrt(Math.max(0,a*a+b*b+c*c-a*b-b*c-c*a));
+  g('#roD').innerHTML=`<div class="grid"><div><div class="note">Neutral current (vector sum)</div><div class="big">${f1(Cx.mag(In))} A</div></div><div><div class="note">Formula √(A² + B² + C² − AB − BC − CA)</div><div class="big">${f1(form)} A</div></div></div>`};
+ const upE=()=>{const K=+g('#eK').value,V=+g('#eV').value;g('#eKl').textContent=K;
+  const Iw=K*1000/V,clK=3*K,opK=SQ3*K;
+  g('#roE').innerHTML=`<div class="grid"><div class="card" style="margin:0"><b>Closed delta (3 transformers)</b><div class="big">${f1(clK)} kVA</div><div class="note">Winding current ${f2(Iw)} A · max line current √3 × ${f2(Iw)} = ${f2(SQ3*Iw)} A</div><div style="background:var(--acc);height:10px;border-radius:5px;width:100%"></div></div>
+  <div class="card" style="margin:0"><b>Open delta (2 transformers)</b><div class="big">${f2(opK)} kVA</div><div class="note">Every load is limited to the winding current ${f2(Iw)} A</div><div style="background:var(--warn);height:10px;border-radius:5px;width:${(opK/clK*100).toFixed(1)}%"></div></div></div>
+  <div class="why" style="margin-top:8px">Open delta = √3 × ${K} = <b>${f2(opK)} kVA</b> = <b>${f1(opK/clK*100)} %</b> of the closed bank (1/√3) and ${f1(opK/(2*K)*100)} % of the two transformers’ combined rating (√3/2). Taking a transformer out of a bank cuts the capacity by <b>more than one third</b>.</div>`};
+ const upF=()=>{const S=+g('#fS').value,D=Math.min(+g('#fD').value,S*0.95);g('#fSl').textContent=S;g('#fDl').textContent=D;
+  g('#roF').innerHTML=`<div class="grid"><div><div class="note">Line-to-neutral: V<sub>s</sub> − V<sub>r</sub></div><div class="big">${f2(S)} − ${f2(S-D)} = ${f2(D)} V</div></div><div><div class="note">Line-to-line: √3 × V<sub>s</sub> − √3 × V<sub>r</sub></div><div class="big">${f2(SQ3*S)} − ${f2(SQ3*(S-D))} = ${f2(SQ3*D)} V</div></div></div>`};
+ g('#bV').onchange=upB;
+ ['#cK0','#cK1','#cK2','#cV','#cPf'].forEach(s=>g(s).oninput=upC);
+ ['#dI0','#dI1','#dI2'].forEach(s=>g(s).oninput=upD);
+ ['#eK','#eV'].forEach(s=>g(s).oninput=upE);['#fS','#fD'].forEach(s=>g(s).oninput=upF);
+ m.querySelectorAll('[data-cp]').forEach(b=>b.onclick=()=>{b.dataset.cp.split(',').forEach((v,i)=>g('#cK'+i).value=v);g('#cV').value=480;g('#cPf').value=1;upC()});
+ m.querySelectorAll('[data-wp]').forEach(b=>b.onclick=()=>{b.dataset.wp.split(',').forEach((v,i)=>g('#dI'+i).value=v);upD()});
+ m.querySelectorAll('[data-cs]').forEach(b=>b.onclick=()=>{sel=b.dataset.cs;m.querySelectorAll('[data-cs]').forEach(x=>x.classList.toggle('on',x===b))});
+ upB();upC();upD();upE();upF();
+
+ /* ---- drawing ---- */
+ const drawA=()=>{const{x,w}=cvA,h=250;cvA.clear();
+  const R=Math.min(h*0.38,w*0.2),cx=R+18,cy=h/2,x0=cx+R+22,W=w-x0-8,th=thA;
+  x.strokeStyle=line();x.lineWidth=1;x.beginPath();x.arc(cx,cy,R,0,7);x.stroke();x.beginPath();x.moveTo(cx-R-6,cy);x.lineTo(cx+R+6,cy);x.moveTo(cx,cy-R-6);x.lineTo(cx,cy+R+6);x.stroke();
+  x.beginPath();x.moveTo(x0,cy);x.lineTo(w-4,cy);x.stroke();x.beginPath();x.moveTo(x0,cy-R-6);x.lineTo(x0,cy+R+6);x.stroke();
+  const ph=[[cA(),0,'A','#aA'],[cB(),2*Math.PI/3,'B','#aB'],[cC(),4*Math.PI/3,'C','#aC']];
+  ph.forEach(([c,a,n,id])=>{if(!g(id).checked)return;
+   x.strokeStyle=c;x.lineWidth=2.5;x.beginPath();for(let i=0;i<=W;i+=2){const u=i/W*4*Math.PI,y=cy-R*Math.sin(th-a-u);i?x.lineTo(x0+i,y):x.moveTo(x0+i,y)}x.stroke();
+   const ex=cx+R*Math.cos(th-a),ey=cy-R*Math.sin(th-a);
+   x.strokeStyle=c;x.globalAlpha=0.45;x.setLineDash([3,4]);x.lineWidth=1.2;x.beginPath();x.moveTo(ex,ey);x.lineTo(x0,ey);x.stroke();x.setLineDash([]);x.globalAlpha=1;
+   phArrow(x,[cx,cy],[ex,ey],c,3,'V'+n.toLowerCase());x.fillStyle=c;x.beginPath();x.arc(x0,ey,3.5,0,7);x.fill()});
+  x.fillStyle=mut();x.font='11px system-ui';x.textAlign='left';x.fillText('0°',x0+4,cy-R-8);x.fillText('120° lag per phase →',x0+W*0.45,cy+R+14);
+  if(T-lastRo>0.12){lastRo=T;const v=a=>Math.sin(th-a),va=v(0),vb=v(2*Math.PI/3),vc=v(4*Math.PI/3);
+   g('#roA').textContent=`Instantaneous (per-unit of peak): Va = ${va.toFixed(2)}   Vb = ${vb.toFixed(2)}   Vc = ${vc.toFixed(2)}   →   Va + Vb + Vc = ${(va+vb+vc).toFixed(2).replace('-0.00','0.00')}`}};
+ const drawB=()=>{const{x,w}=cvB,h=300;cvB.clear();const L=+g('#bV').value,V=L/SQ3,R=Math.min(w*0.3,h*0.35),cx=w/2,cy=h*0.64,k=R/V;
+  const P=c=>[cx+c[0]*k,cy-c[1]*k];const Van=Cx.pol(V,90),Vbn=Cx.pol(V,-30),Vcn=Cx.pol(V,-150);
+  x.strokeStyle=line();x.lineWidth=1.5;x.setLineDash([5,4]);x.beginPath();[Van,Vbn,Vcn,Van].forEach((p,i)=>{const q=P(p);i?x.lineTo(q[0],q[1]):x.moveTo(q[0],q[1])});x.stroke();x.setLineDash([]);
+  x.fillStyle=mut();x.font='11px system-ui';x.textAlign='center';
+  [[Vbn,Vcn,'Vbc'],[Vcn,Van,'Vca'],[Van,Vbn,'Vab']].forEach(([a,b,n])=>{const mdp=P(Cx.sc(Cx.add(a,b),0.5));const ang=Cx.ang(Cx.add(a,b));x.fillText(n+' = '+f1(L)+' V',mdp[0]+Math.cos(ang*Math.PI/180)*30,mdp[1]-Math.sin(ang*Math.PI/180)*14)});
+  const tt=T%5.5,s=phEase(Math.max(0,Math.min(1,(tt-0.8)/2.4))),neg=Cx.sc(Vbn,-1),end=Cx.add(Van,Cx.sc(neg,s));
+  phArrow(x,P([0,0]),P(Vcn),cC(),2.5,'Vcn');phArrow(x,P([0,0]),P(Vbn),cB(),2.5,'Vbn');phArrow(x,P([0,0]),P(Van),cA(),2.5,'Van');
+  if(s>0.02)phArrow(x,P(Van),P(end),cB(),2.5,s>0.9?'−Vbn':'',{dash:[5,4],mid:true,off:-14});
+  phArrow(x,P([0,0]),P(end),ink(),3.5,s>0.97?'Vab':'',{mid:true,off:15});
+  x.strokeStyle=ink();x.lineWidth=1.2;x.beginPath();x.arc(cx,cy,R*0.38,-120*Math.PI/180,-90*Math.PI/180);x.stroke();x.fillStyle=ink();x.font='600 11px system-ui';x.fillText('30°',cx-R*0.16,cy-R*0.66)};
+ const drawC=()=>{if(!CI.Ia)return;const{Iab,Ibc,Ica,Ia,Ib,Ic}=CI;
+  const set={a:[Iab,Ica,Ia,'Iab','Ica','Ia'],b:[Ibc,Iab,Ib,'Ibc','Iab','Ib'],c:[Ica,Ibc,Ic,'Ica','Ibc','Ic']}[sel];const[X,Y,Z,nx,ny,nz]=set;
+  const col={Iab:cA(),Ibc:cB(),Ica:cC()};
+  {const{x,w}=cvC1,h=290;cvC1.clear();const negY=Cx.sc(Y,-1),F=phFit([[0,0],X,Cx.add(X,negY),Y],w,h,38),P=F.P;
+   const tt=T%5.5,s=phEase(Math.max(0,Math.min(1,(tt-0.8)/2.4))),end=Cx.add(X,Cx.sc(negY,s));
+   phArrow(x,P([0,0]),P(Y),col[ny],2,ny.replace('I','I').replace(/^I(.)(.)$/,'I$1$2'),{dash:[4,4]});
+   phArrow(x,P([0,0]),P(X),col[nx],3,nx);
+   if(s>0.02)phArrow(x,P(X),P(end),col[ny],3,s>0.9?'−'+ny:'',{dash:[5,4],mid:true,off:-14});
+   phArrow(x,P([0,0]),P(end),ink(),3.5,s>0.97?nz+' = '+fmt(Cx.mag(Z),1)+' A':'',{mid:true,off:16})}
+  {const{x,w}=cvC2,h=290;cvC2.clear();const F=phFit([[0,0],Ia,Ib,Ic],w,h,42),P=F.P;
+   const o=P([0,0]);x.strokeStyle=line();x.lineWidth=1;x.beginPath();x.moveTo(o[0]-w/2,o[1]);x.lineTo(o[0]+w/2,o[1]);x.moveTo(o[0],o[1]-h/2);x.lineTo(o[0],o[1]+h/2);x.stroke();
+   [[Ia,'Ia',cA()],[Ib,'Ib',cB()],[Ic,'Ic',cC()]].forEach(([c,n,col])=>phArrow(x,o,P(c),col,n.slice(1)===sel?4:2.5,n+' '+fmt(Cx.mag(c),1)+' A'));
+   x.setLineDash([2,4]);x.strokeStyle=mut();x.lineWidth=1;x.beginPath();[Ia,Ib,Ic,Ia].forEach((p,i)=>{const q=P(p);i?x.lineTo(q[0],q[1]):x.moveTo(q[0],q[1])});x.stroke();x.setLineDash([])}};
+ const drawD=()=>{if(!DI.ph)return;const{x,w}=cvD,h=300;cvD.clear();const[a,b,c]=DI.ph,In=DI.In;
+  const p1=a,p2=Cx.add(a,b),p3=Cx.add(p2,c);const F=phFit([[0,0],p1,p2,p3],w,h,42),P=F.P;
+  const u=(T%7)/7*4.2,seg=i=>phEase(Math.max(0,Math.min(1,u-i)));
+  const cols=[cA(),cB(),cC()],names=['Ia','Ib','Ic'];
+  [[0,[0,0],a],[1,p1,b],[2,p2,c]].forEach(([i,st,v])=>{const sv=seg(i);if(sv<0.02)return;const e=Cx.add(st,Cx.sc(v,sv));phArrow(x,P(st),P(e),cols[i],3,sv>0.95?names[i]+' '+fmt(Cx.mag(v),1)+' A':'',{mid:true,off:i<2?-15:15})});
+  if(u>3.1){x.globalAlpha=Math.min(1,u-3.1);phArrow(x,P([0,0]),P(p3),ink(),4,'In = '+fmt(Cx.mag(In),1)+' A',{mid:true,off:-18});x.globalAlpha=1}
+  const o=P([0,0]);x.fillStyle=ink();x.beginPath();x.arc(o[0],o[1],4,0,7);x.fill()};
+ const drawF=()=>{const{x,w}=cvF,h=300;cvF.clear();const S=+g('#fS').value,D=Math.min(+g('#fD').value,S*0.95),Rv=S-D,rot=T*14;
+  const k=Math.min(h*0.4,w*0.22)/S,cx=w/2,cy=h/2;const P=(m,a)=>[cx+m*k*Math.cos(a*Math.PI/180),cy-m*k*Math.sin(a*Math.PI/180)];
+  const ang=[90+rot,-30+rot,-150+rot];
+  x.lineWidth=1.5;x.strokeStyle=cB();x.beginPath();x.arc(cx,cy,S*k,0,7);x.stroke();x.strokeStyle=cA();x.beginPath();x.arc(cx,cy,Rv*k,0,7);x.stroke();
+  const tri=(m,c,dash)=>{x.strokeStyle=c;x.lineWidth=1.5;x.setLineDash(dash?[5,4]:[]);x.beginPath();ang.concat([ang[0]]).forEach((a,i)=>{const q=P(m,a);i?x.lineTo(q[0],q[1]):x.moveTo(q[0],q[1])});x.stroke();x.setLineDash([])};
+  tri(S,cB(),true);tri(Rv,cA(),false);
+  ang.forEach(a=>{const o=[cx,cy];phArrow(x,o,P(S,a),cB(),2);phArrow(x,o,P(Rv,a),cA(),2)});
+  x.fillStyle=cB();x.font='600 12px system-ui';x.textAlign='left';x.fillText('source Vs = '+fmt(S,2)+' V (L-N), '+fmt(SQ3*S,2)+' V (L-L)',8,18);x.fillStyle=cA();x.fillText('load Vr = '+fmt(Rv,2)+' V (L-N), '+fmt(SQ3*Rv,2)+' V (L-L)',8,36)};
+ let raf,last=performance.now();
+ const loop=now=>{const dt=Math.min(0.05,(now-last)/1000);last=now;T+=dt;if(playA)thA+=dt*2*Math.PI*spdA;
+  drawA();drawB();drawC();drawD();drawF();raf=requestAnimationFrame(loop)};
+ raf=requestAnimationFrame(loop);
+ stopFn=()=>{cancelAnimationFrame(raf);window.removeEventListener('resize',rs)}}
+
+const VIEWS={parts:['Exam Parts',viewParts],part1:['Part 1',()=>viewPart(1)],part2:['Part 2',()=>viewPart(2)],part3:['Part 3',()=>viewPart(3)],part4:['Part 4',()=>viewPart(4)],study:['All Questions',viewStudy],power:['Power Transformers',()=>viewSection('power')],control:['Control Transformers',()=>viewSection('control')],sccr:['SCCR',()=>viewSection('sccr')],quiz:['Quiz',viewQuiz],sim:['Simulators',viewSim],phasor:['3-Phase Phasors',viewPhasor],ref:['Reference',viewRef]};
 function go(v,sub){if(sub){simTab=sub;store.set('ul508a.sim',sub)}if(stopFn){stopFn();stopFn=null}location.hash=v;render()}
 function render(){
  const v=(location.hash||'#parts').slice(1);const cur=VIEWS[v]?v:'parts';
