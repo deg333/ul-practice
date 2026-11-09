@@ -113,6 +113,8 @@ body.pad-open #pad{transform:none}
 .psec{margin-bottom:10px}.pl{display:inline-block;padding:1px 12px;border-radius:99px 99px 0 0;font-weight:700;font-size:.78rem;color:#fff;letter-spacing:.04em;text-transform:uppercase}
 .pg{background:var(--tg)}.pf{background:var(--tf);color:#2b1d00}.pe{background:var(--te)}.ps{background:var(--ts)}
 .paper{display:block;width:100%;background-color:var(--paper);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:20px 20px;background-attachment:local;border:1px solid var(--grid);border-radius:0 6px 6px 6px;color:var(--ink)}
+.pwrap{position:relative}.pwrap>textarea{position:absolute;left:0;top:0;opacity:0;pointer-events:none;width:100%;box-sizing:border-box}.pwrap.edit>textarea{position:static;opacity:1;pointer-events:auto}.pwrap.edit>.ptex{display:none}
+.ptex{cursor:text;padding:3px 8px;min-height:42px;box-sizing:border-box;overflow-x:auto}.ptex:focus{outline:2px solid var(--acc)}.ptl{min-height:20px;line-height:1.25;padding:1px 0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}.ptl::-webkit-scrollbar{display:none}.ptl .katex{font-size:1.05em}.ptl-err{color:var(--bad);font:14px/20px ui-monospace,Menlo,Consolas,monospace;text-decoration:underline wavy var(--bad)}.ptl-cm{color:var(--mut);font:italic 14px/20px system-ui}.pph{color:var(--mut);opacity:.65;font:15px/20px ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap}
 textarea.paper{font:15px/20px ui-monospace,Menlo,Consolas,monospace;padding:0 6px;resize:vertical;min-height:42px;overflow-y:auto}
 .sol{min-height:100px;padding:4px 8px 8px}
 .step{display:flex;gap:6px;padding:6px 0;border-bottom:1px dashed var(--grid)}.sn{font-weight:700;color:var(--ts);min-width:20px}.sb{flex:1;min-width:0}
@@ -2612,6 +2614,13 @@ function padSolve(given,find,eq){
   else answers.push({name:F.name,val:null,unit:F.unit})}
  return {V,U,vars,steps,errs,answers}}
 function padTex(el,tex,plain){if(window.katex){try{katex.render(tex,el,{throwOnError:false,strict:false});return}catch(e){}}el.textContent=plain||tex}
+function padTexLine(sec,raw){
+ const cm=raw.match(/(#|\/\/)\s*(.*)$/),body=raw.replace(/(#|\/\/).*$/,'').trim();
+ if(!body)return cm?{cm:'# '+cm[2]}:null;
+ try{let tex;
+  if(sec==='find'){const F=padFindLine(raw);if(!F)return null;tex=vname(F.name)+' = \\,?'+punit(F.unit)}
+  else{const L=padLine(raw);const ast=padAst(L.rhs);tex=(L.lhs?vname(L.lhs)+' = ':'')+ptx(ast,null)+punit(L.unit)}
+  return {tex}}catch(e){return {err:e.message}}}
 const PAD_EX={
  '3-phase power':{given:'V_L = 480 V\nI_L = 30 A\npf = 0.8',find:'P = ? W\nP_kW = ? kW',eq:'P = sqrt(3) * V_L * I_L * pf\nP_kW = P / 1000'},
  'Transformer current & primary-only protection':{given:'kVA = 75\nV_p = 480 V\nV_s = 208 V',find:'I_p = ? A\nI_s = ? A\nOCPD_p = ? A',eq:'I_p = kVA*1000 / (sqrt(3) * V_p)\nI_s = kVA*1000 / (sqrt(3) * V_s)\nI_pmax = I_p * 125%\nOCPD_p = up(I_pmax)'},
@@ -2645,7 +2654,21 @@ const PAD_EX={
   if(R.answers.length){const A=document.createElement('div');A.className='pans';
    R.answers.forEach(a=>{const l=document.createElement('div');if(a.val==null){l.className='nf';l.textContent=a.name+' = ?  (not solved yet – write an equation for it)'}else{l.className='ok2';const v=typeof a.val==='string'?'\\text{'+a.val.replace(/[\\{}_^%#&$~]/g,' ')+'}':pnum(a.val)+punit(a.unit);padTex(l,vname(a.name)+' = '+v,a.name+' = '+padFmt(a.val))}A.appendChild(l)});
    S.appendChild(A)}
-  window._padLast={R,st};save()}
+  ids.forEach(texOne);window._padLast={R,st};save()}
+ const SECN={pgiven:'given',pfind:'find',peq:'eq'},esc2=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+ function texOne(id){const ta=$('#'+id),w=ta.parentNode,v=w.querySelector('.ptex');if(!v||w.classList.contains('edit'))return;
+  const h=ta.offsetHeight;if(h>0)v.style.minHeight=h+'px';v.innerHTML='';
+  if(!ta.value.trim()){v.innerHTML='<div class="pph">'+esc2(ta.placeholder)+'</div>';return}
+  ta.value.split('\n').forEach((raw,i)=>{const d=document.createElement('div');d.className='ptl';d.dataset.ln=i;const r=padTexLine(SECN[id],raw);
+   if(r==null)d.innerHTML='&nbsp;';else if(r.err){d.className+=' ptl-err';d.textContent=raw;d.title=r.err}else if(r.cm){d.className+=' ptl-cm';d.textContent=r.cm}else padTex(d,r.tex,raw);
+   v.appendChild(d)})}
+ ids.forEach(id=>{const ta=$('#'+id);if(ta.parentNode.classList.contains('pwrap'))return;
+  const w=document.createElement('div');w.className='pwrap';ta.parentNode.insertBefore(w,ta);w.appendChild(ta);
+  const v=document.createElement('div');v.className='paper ptex';v.tabIndex=0;v.title='Click to edit';w.insertBefore(v,ta);
+  ta.addEventListener('focus',()=>w.classList.add('edit'));
+  ta.addEventListener('blur',()=>{w.classList.remove('edit');texOne(id)});
+  v.addEventListener('focus',()=>ta.focus());
+  v.addEventListener('click',e=>{const l=e.target.closest('[data-ln]');ta.focus();if(l){const n=+l.dataset.ln,L=ta.value.split('\n');let pos=0;for(let i=0;i<=n&&i<L.length;i++)pos+=L[i].length+(i<n?1:0);ta.setSelectionRange(pos,pos)}})});
  let tm;const sched=()=>{clearTimeout(tm);tm=setTimeout(run,160)};
  // restore
  const sv=store.get('ul508a.pad',null);

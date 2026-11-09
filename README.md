@@ -33,3 +33,6 @@ Control-transformer items (questions, lessons, simulator) now use UL 508A Table 
 
 ## Heater service problem tab
 The 3-Phase Phasors page now has two tabs. "Problem: heater service" works the 230 V, 3-phase unbalanced heater example (editable counts and watts): leg and line currents by vector difference, maximum demand, 125 percent continuous sizing, feeder and branch circuit breakers, an animated phasor construction, and a one-line diagram. Questions ph-7 and ph-8 match it.
+
+## Typeset, editable scratch pad
+Given, Find and Equations are now shown as KaTeX-typeset math. Click (or tab into) any line to edit the plain text, and click away to see it typeset again; invalid lines show as red text with the error on hover.
