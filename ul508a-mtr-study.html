@@ -4,8 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>UL 508A MTR Exam Study Guide</title>
-<link rel="stylesheet" href="vendor/katex/katex.min.css">
-<script defer src="vendor/katex/katex.min.js"></script>
+<script>
+/* KaTeX: use the bundled copy in vendor/katex; if it is missing (e.g. the HTML file was opened on its own) fall back to the CDN. */
+window.katexCDN=function(){if(window._kcdn)return;window._kcdn=1;var v='0.16.11',b='https://cdnjs.cloudflare.com/ajax/libs/KaTeX/'+v+'/';
+ var l=document.createElement('link');l.rel='stylesheet';l.href=b+'katex.min.css';document.head.appendChild(l);
+ var s=document.createElement('script');s.src=b+'katex.min.js';s.onload=function(){window.dispatchEvent(new Event('katex-ready'))};document.head.appendChild(s)};
+window.addEventListener('load',function(){if(!window.katex)window.katexCDN();else window.dispatchEvent(new Event('katex-ready'))});
+</script>
+<link rel="stylesheet" href="vendor/katex/katex.min.css" onerror="katexCDN()">
+<script defer src="vendor/katex/katex.min.js" onerror="katexCDN()"></script>
 <style>
 :root{--bg:#f6f7f9;--card:#fff;--ink:#16202c;--mut:#5b6877;--line:#d9dee5;--acc:#1f5fd1;--acc2:#e8f0fe;--ok:#14803c;--okbg:#e6f6ec;--bad:#c62828;--badbg:#fdecec;--warn:#9a6700;--warnbg:#fff6dd;--ph-a:#d63031;--ph-b:#2563eb;--ph-c:#15803d;--cur:#b7791f;--code:#eef1f5}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0e1319;--card:#171e27;--ink:#e6ebf1;--mut:#9aa7b6;--line:#2a3441;--acc:#6ea0ff;--acc2:#1a2a47;--ok:#4ade80;--okbg:#10301e;--bad:#ff7b7b;--badbg:#3a1717;--warn:#f2c14e;--warnbg:#33290d;--ph-a:#ff6b6b;--ph-b:#6ea0ff;--ph-c:#4ade80;--cur:#f2c14e;--code:#222c38}}
@@ -2613,7 +2620,7 @@ function padSolve(given,find,eq){
   if(F.name in V)answers.push({name:F.name,val:V[F.name],unit:F.unit||U[F.name]||''});
   else answers.push({name:F.name,val:null,unit:F.unit})}
  return {V,U,vars,steps,errs,answers}}
-function padTex(el,tex,plain){if(window.katex){try{katex.render(tex,el,{throwOnError:false,strict:false});return}catch(e){}}el.textContent=plain||tex}
+function padTex(el,tex,plain){if(window.katex){try{katex.render(tex,el,{throwOnError:false,strict:false});return}catch(e){}}el.textContent=plain||tex.replace(/\\mathrm\{([^}]*)\}/g,'$1').replace(/\\operatorname\{([^}]*)\}/g,'$1').replace(/\\d?frac\{([^{}]*)\}\{([^{}]*)\}/g,'($1)/($2)').replace(/\\times/g,'×').replace(/\\(left|right)/g,'').replace(/\\[,;! ]/g,' ').replace(/\\%/g,'%').replace(/[\\{}]/g,'')}
 function padTexLine(sec,raw){
  const cm=raw.match(/(#|\/\/)\s*(.*)$/),body=raw.replace(/(#|\/\/).*$/,'').trim();
  if(!body)return cm?{cm:'# '+cm[2]}:null;
@@ -2655,6 +2662,7 @@ const PAD_EX={
    R.answers.forEach(a=>{const l=document.createElement('div');if(a.val==null){l.className='nf';l.textContent=a.name+' = ?  (not solved yet – write an equation for it)'}else{l.className='ok2';const v=typeof a.val==='string'?'\\text{'+a.val.replace(/[\\{}_^%#&$~]/g,' ')+'}':pnum(a.val)+punit(a.unit);padTex(l,vname(a.name)+' = '+v,a.name+' = '+padFmt(a.val))}A.appendChild(l)});
    S.appendChild(A)}
   ids.forEach(texOne);window._padLast={R,st};save()}
+ window._padRun=run;
  const SECN={pgiven:'given',pfind:'find',peq:'eq'},esc2=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;');
  function texOne(id){const ta=$('#'+id),w=ta.parentNode,v=w.querySelector('.ptex');if(!v||w.classList.contains('edit'))return;
   const h=ta.offsetHeight;if(h>0)v.style.minHeight=h+'px';v.innerHTML='';
@@ -2691,6 +2699,7 @@ const PAD_EX={
 })();
 
 updateScore();render();
+window.addEventListener('katex-ready',()=>{try{window._padRun&&window._padRun();render()}catch(e){}});
 </script>
 </body>
 </html>
