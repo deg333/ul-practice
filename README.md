@@ -36,3 +36,6 @@ The 3-Phase Phasors page now has two tabs. "Problem: heater service" works the 2
 
 ## Typeset, editable scratch pad
 Given, Find and Equations are now shown as KaTeX-typeset math. Click (or tab into) any line to edit the plain text, and click away to see it typeset again; invalid lines show as red text with the error on hover.
+
+## Heater problem: add groups, wye version
+The heater problem now lets you add and remove heater groups on every leg, and a new tab solves the same kind of problem on a wye (4-wire) service with line-to-line and line-to-neutral groups, neutral current, 1-pole and 2-pole breakers and a one-line diagram.

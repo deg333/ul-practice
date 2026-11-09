@@ -2148,91 +2148,121 @@ function viewPhasorConcepts(m){
  raf=requestAnimationFrame(loop);
  stopFn=()=>{cancelAnimationFrame(raf);window.removeEventListener('resize',rs)}}
 
-/* ============================== phasor page: wrapper with tabs + heater service problem ============================== */
+/* ============================== phasor page: wrapper with tabs + heater service problems (delta and wye) ============================== */
 let phTab=store.get('ul508a.phtab','concepts');
 function viewPhasor(){
- const main=$('#main');
- main.innerHTML=`<div class="sub" id="phtabs"><button data-t="concepts" class="${phTab==='concepts'?'on':''}">Concepts &amp; animations</button><button data-t="heaters" class="${phTab==='heaters'?'on':''}">Problem: heater service</button></div><div id="phbox"></div>`;
+ const main=$('#main'),TABS=[['concepts','Concepts &amp; animations'],['heaters','Problem: heater service (delta)'],['wye','Problem: heater service (wye)']];
+ if(!TABS.some(t=>t[0]===phTab))phTab='concepts';
+ main.innerHTML=`<div class="sub" id="phtabs">${TABS.map(t=>`<button data-t="${t[0]}" class="${phTab===t[0]?'on':''}">${t[1]}</button>`).join('')}</div><div id="phbox"></div>`;
  $('#phtabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;phTab=b.dataset.t;store.set('ul508a.phtab',phTab);if(stopFn){stopFn();stopFn=null}viewPhasor()};
- (phTab==='heaters'?viewHeaters:viewPhasorConcepts)($('#phbox'))}
+ const box=$('#phbox');
+ if(phTab==='heaters')viewHeaterProb(box,'delta');else if(phTab==='wye')viewHeaterProb(box,'wye');else viewPhasorConcepts(box)}
 const HSTD=[15,20,25,30,35,40,45,50,60,70,80,90,100,110,125,150,175,200,225,250,300,350,400];
 const HW75=[['14',15],['12',20],['10',30],['8',50],['6',65],['4',85],['3',100],['2',115],['1',130],['1/0',150],['2/0',175],['3/0',200],['4/0',230]];
-function viewHeaters(m){
- const LEG=['A-B','B-C','C-A'],DEF=[[15,225],[0,0],[10,225],[2,1000],[5,225],[2,1000]];
- const grp=i=>`<div class="fld"><label>Group ${i%2+1}: count × watts</label><div class="row" style="gap:6px;flex-wrap:nowrap"><input id="hn${i}" type="number" min="0" step="1" value="${DEF[i][0]}" style="width:70px"><span>×</span><input id="hw${i}" type="number" min="0" step="any" value="${DEF[i][1]}" style="width:90px"><span>W</span></div></div>`;
- m.innerHTML=`<div class="card"><h2 style="margin-top:0">Maximum demand: 230 V 3-phase heater service</h2>
- <p><b>Problem.</b> How do you calculate the maximum demand for a <b>230 V, 3-phase</b> service with <b>15 × 225 W</b> heaters on phase A-B, <b>10 × 225 W</b> and <b>2 × 1000 W</b> heaters on phase B-C, and <b>5 × 225 W</b> and <b>2 × 1000 W</b> heaters on phase A-C? Show the phasor combination of the line-to-line resistive loads and draw the circuit. Branch protection and feeder protection are <b>circuit breakers</b>.</p>
- <p class="note">Assumptions: 3-wire delta service, each heater group connected line-to-line, resistive (power factor 1), heaters rated 230 V, heating is continuous (125 % rule), no demand factor taken (100 % demand), each heater group on its own branch circuit. Change any number below and everything recalculates.</p>
- <div class="fld" style="max-width:200px"><label>Service voltage (V, line-to-line)</label><input id="hV" type="number" value="230" min="100" step="1"></div>
- <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-top:12px">${[0,1,2].map(l=>`<div style="border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--bg)"><div style="font-weight:700;margin-bottom:8px;color:${['var(--ph-a)','var(--ph-b)','var(--ph-c)'][l]}">Leg ${LEG[l]}</div>${grp(2*l)}${grp(2*l+1)}</div>`).join('')}</div></div>
+function viewHeaterProb(m,mode){
+ const wye=mode==='wye',cA='var(--ph-a)',cB='var(--ph-b)',cC='var(--ph-c)';
+ const LEGS=[{id:'AB',lab:'A-B',a:'A',b:'B',ang:wye?30:0,col:cA},{id:'BC',lab:'B-C',a:'B',b:'C',ang:wye?-90:-120,col:cB},{id:'CA',lab:'C-A',a:'C',b:'A',ang:wye?150:120,col:cC}];
+ if(wye)LEGS.push({id:'AN',lab:'A-N',a:'A',b:'N',ang:0,ln:true,col:cA},{id:'BN',lab:'B-N',a:'B',b:'N',ang:-120,ln:true,col:cB},{id:'CN',lab:'C-N',a:'C',b:'N',ang:120,ln:true,col:cC});
+ const DEF={AB:[[15,225]],BC:[[10,225],[2,1000]],CA:[[5,225],[2,1000]],AN:[],BN:[],CN:[]},ST={};
+ LEGS.forEach(l=>ST[l.id]=DEF[l.id].map(x=>({n:x[0],w:x[1]})));
+ const defV=wye?208:230;
+ m.innerHTML=`<div class="card"><h2 style="margin-top:0">${wye?'Maximum demand: heater service on a wye (4-wire) system':'Maximum demand: 230 V 3-phase heater service'}</h2>
+ ${wye?`<p><b>Problem.</b> The same kind of heater loads, but fed from a <b>wye</b> service such as 208Y/120 V or 480Y/277 V. Heaters can be connected <b>line-to-line</b> (2-pole breaker, V<sub>L-L</sub>) or <b>line-to-neutral</b> (1-pole breaker, V<sub>L-N</sub> = V<sub>L-L</sub> ÷ √3). Find the line currents, the <b>neutral current</b>, the maximum demand, and the feeder and branch circuit breakers.</p>
+ <p class="note">Assumptions: 4-wire wye (solidly grounded neutral), resistive heaters rated for the voltage they are connected to, continuous heating (125 % rule), 100 % demand, each heater group on its own branch circuit. The default loads are the delta problem’s heaters connected line-to-line at 208 V; add groups on the line-to-neutral legs to see the neutral current.</p>`
+ :`<p><b>Problem.</b> How do you calculate the maximum demand for a <b>230 V, 3-phase</b> service with <b>15 × 225 W</b> heaters on phase A-B, <b>10 × 225 W</b> and <b>2 × 1000 W</b> heaters on phase B-C, and <b>5 × 225 W</b> and <b>2 × 1000 W</b> heaters on phase A-C? Show the phasor combination of the line-to-line resistive loads and draw the circuit. Branch protection and feeder protection are <b>circuit breakers</b>.</p>
+ <p class="note">Assumptions: 3-wire delta service, each heater group connected line-to-line, resistive (power factor 1), heaters rated 230 V, heating is continuous (125 % rule), no demand factor taken (100 % demand), each heater group on its own branch circuit. Change any number below, or add groups, and everything recalculates.</p>`}
+ <div class="fld" style="max-width:240px"><label>Service voltage (V, line-to-line)${wye?': <b id="hLN"></b>':''}</label><input id="hV" type="number" value="${defV}" min="100" step="1"></div>
+ <div id="hEd"></div></div>
  <div class="card"><h3 style="margin-top:0">Answer, step by step</h3><div id="hSteps"></div></div>
- <div class="card"><h3 style="margin-top:0">Phasor combination of the line-to-line loads</h3>
- <p class="note">Each leg’s current is in phase with its own line-to-line voltage (resistive), so the three leg currents are 120° apart. A line current is the <b>vector difference</b> of the two leg currents meeting at that line: I<sub>a</sub> = I<sub>ab</sub> − I<sub>ca</sub>, I<sub>b</sub> = I<sub>bc</sub> − I<sub>ab</sub>, I<sub>c</sub> = I<sub>ca</sub> − I<sub>bc</sub>.</p>
+ <div class="card"><h3 style="margin-top:0">Phasor combination of the loads</h3>
+ <p class="note">Each load’s current is in phase with its own voltage (resistive). ${wye?'Line-to-line loads are 30° ahead of the line-to-neutral voltages; a line current is the vector sum of its line-to-neutral current and the line-to-line currents leaving it, minus those arriving at it. The <b>neutral current</b> is the vector sum of the three line currents (line-to-line loads cancel out of it).':'The three leg currents are 120° apart. A line current is the <b>vector difference</b> of the two leg currents meeting at that line.'}</p>
  <div class="row" style="gap:8px;margin-bottom:8px"><span class="note">Show construction of:</span><button class="btn sm on" data-hs="a">I<sub>a</sub></button><button class="btn sm" data-hs="b">I<sub>b</sub></button><button class="btn sm" data-hs="c">I<sub>c</sub></button></div>
  <div class="grid"><div><div class="note" style="text-align:center">Construction (tip-to-tail)</div><canvas id="cvH1" style="width:100%;height:300px;display:block"></canvas></div>
- <div><div class="note" style="text-align:center">Line currents vs the balanced-load formula (dashed circle)</div><canvas id="cvH2" style="width:100%;height:300px;display:block"></canvas></div></div></div>
+ <div><div class="note" style="text-align:center">Line currents${wye?', neutral':''} vs the balanced-load formula (dashed circle)</div><canvas id="cvH2" style="width:100%;height:300px;display:block"></canvas></div></div></div>
  <div class="card"><h3 style="margin-top:0">Circuit: breakers on every branch and on the feeder</h3><div id="hSvg" style="overflow-x:auto"></div>
- <p class="note">Line-to-line branch circuits use 2-pole breakers; the feeder uses a 3-pole breaker. Conductor sizes use UL 508A Table 28.1, copper, 75 °C column.</p></div>`;
- const g=id=>$(id,m),f1=v=>fmt(v,1),f2=v=>fmt(v,2);
- const cvH1=phCv(g('#cvH1'),300),cvH2=phCv(g('#cvH2'),300);const rs=()=>{cvH1.fit();cvH2.fit()};window.addEventListener('resize',rs);
+ <p class="note">${wye?'Line-to-line branches use 2-pole breakers, line-to-neutral branches 1-pole (in the line conductor only). The feeder breaker is 3-pole; the neutral is not switched or fused.':'Line-to-line branch circuits use 2-pole breakers; the feeder uses a 3-pole breaker.'} Conductor sizes use UL 508A Table 28.1, copper, 75 °C column.</p></div>`;
+ const g=id=>$(id,m),f1=v=>fmt(v,1),f2=v=>fmt(v,2),legBy=id=>LEGS.find(l=>l.id===id);
+ const cv1=phCv(g('#cvH1'),300),cv2=phCv(g('#cvH2'),300);const rs=()=>{cv1.fit();cv2.fit()};window.addEventListener('resize',rs);
  let sel='a',D=null,T=0;
  const nextStd=x=>HSTD.find(v=>v>=x-1e-9)||HSTD[HSTD.length-1];
- const wireFor=a=>{const w=HW75.find(r=>r[1]>=a-1e-9);return w?w[0]+' AWG/kcmil':'—'};
  const wireLabel=a=>{const w=HW75.find(r=>r[1]>=a-1e-9);return w?w[0]+' AWG ('+w[1]+' A)':'larger than 4/0'};
+ /* ---- group editor ---- */
+ const drawEd=()=>{g('#hEd').innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-top:12px">${LEGS.map(l=>`<div style="border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--bg)"><div style="font-weight:700;margin-bottom:8px;color:${l.col}">${wye?(l.ln?'Line-to-neutral ':'Line-to-line ')+l.lab:'Leg '+l.lab}</div>${ST[l.id].map((r,i)=>`<div class="row" style="gap:6px;flex-wrap:nowrap;margin-bottom:6px"><input data-l="${l.id}" data-i="${i}" data-f="n" type="number" min="0" step="1" value="${r.n}" style="width:64px" aria-label="count"><span>×</span><input data-l="${l.id}" data-i="${i}" data-f="w" type="number" min="0" step="any" value="${r.w}" style="width:84px" aria-label="watts"><span>W</span><button class="btn sm" data-del="${l.id}:${i}" title="Remove this group" aria-label="Remove group">×</button></div>`).join('')||'<div class="note" style="margin-bottom:8px">No heaters on this leg.</div>'}<button class="btn sm" data-add="${l.id}">+ Add group</button></div>`).join('')}</div>`};
+ g('#hEd').addEventListener('input',e=>{const t=e.target;if(!t.dataset.l)return;ST[t.dataset.l][+t.dataset.i][t.dataset.f]=+t.value;calc()});
+ g('#hEd').addEventListener('click',e=>{const a=e.target.closest('[data-add]'),d=e.target.closest('[data-del]');
+  if(a){ST[a.dataset.add].push({n:1,w:1000});drawEd();calc();const ins=g('#hEd').querySelectorAll(`[data-l="${a.dataset.add}"][data-f="n"]`);ins[ins.length-1].focus();ins[ins.length-1].select()}
+  else if(d){const[l,i]=d.dataset.del.split(':');ST[l].splice(+i,1);drawEd();calc()}});
+ /* ---- calculation ---- */
  const calc=()=>{
-  const V=+g('#hV').value||230,groups=[];
-  for(let i=0;i<6;i++){const n=+g('#hn'+i).value,w=+g('#hw'+i).value;if(n>0&&w>0){const P=n*w,I=P/V,need=I*1.25,cb=nextStd(need);groups.push({leg:i>>1,n,w,P,I,need,cb,wire:wireLabel(cb)})}}
-  const Pl=[0,1,2].map(l=>groups.filter(x=>x.leg===l).reduce((a,x)=>a+x.P,0)),Ileg=Pl.map(p=>p/V);
-  const Iab=Cx.pol(Ileg[0],0),Ibc=Cx.pol(Ileg[1],-120),Ica=Cx.pol(Ileg[2],120);
-  const Ia=Cx.sub(Iab,Ica),Ib=Cx.sub(Ibc,Iab),Ic=Cx.sub(Ica,Ibc),Ilines=[Ia,Ib,Ic].map(Cx.mag);
-  const Pt=Pl[0]+Pl[1]+Pl[2],Ibal=Pt/(SQ3*V),Imax=Math.max(...Ilines),worst='ABC'[Ilines.indexOf(Imax)];
-  const need=Imax*1.25,fcb=nextStd(need);
-  D={V,groups,Pl,Ileg,Iab,Ibc,Ica,Ia,Ib,Ic,Ilines,Pt,Ibal,Imax,worst,need,fcb,fwire:wireLabel(fcb),Sbal:SQ3*V*Imax};
-  const lg=[['A-B',Pl[0],Ileg[0]],['B-C',Pl[1],Ileg[1]],['C-A',Pl[2],Ileg[2]]];
-  const desc=l=>{const gs=groups.filter(x=>x.leg===l);return gs.map(x=>x.n+' × '+fmt(x.w,0)+' W').join(' + ')||'none'};
+  const V=+g('#hV').value||defV,VN=V/SQ3;if(wye)g('#hLN').textContent=f1(VN)+' V line-to-neutral';
+  const groups=[];
+  LEGS.forEach(l=>{const Vl=l.ln?VN:V;ST[l.id].forEach(r=>{if(r.n>0&&r.w>0){const P=r.n*r.w,I=P/Vl,need=I*1.25,cb=nextStd(need);groups.push({leg:l.id,lab:l.lab,ln:!!l.ln,Vl,n:r.n,w:r.w,P,I,need,cb,wire:wireLabel(cb)})}})});
+  const Pl={},Il={},ph={};LEGS.forEach(l=>{Pl[l.id]=groups.filter(x=>x.leg===l.id).reduce((a,x)=>a+x.P,0);Il[l.id]=Pl[l.id]/(l.ln?VN:V);ph[l.id]=Cx.pol(Il[l.id],l.ang)});
+  const z=[0,0],P=id=>ph[id]||z;
+  const lineTerms={a:[['AN',1],['AB',1],['CA',-1]],b:[['BN',1],['BC',1],['AB',-1]],c:[['CN',1],['CA',1],['BC',-1]]};
+  Object.keys(lineTerms).forEach(k=>lineTerms[k]=lineTerms[k].filter(t=>Il[t[0]]>0));
+  const Ivec={};['a','b','c'].forEach(k=>Ivec[k]=lineTerms[k].reduce((s,t)=>t[1]>0?Cx.add(s,P(t[0])):Cx.sub(s,P(t[0])),z));
+  const In=wye?Cx.add(Cx.add(Ivec.a,Ivec.b),Ivec.c):z;
+  const Ilines=['a','b','c'].map(k=>Cx.mag(Ivec[k])),Pt=Object.values(Pl).reduce((a,b)=>a+b,0),Ibal=Pt/(SQ3*V),Imax=Math.max(...Ilines),worst='ABC'[Ilines.indexOf(Imax)];
+  const need=Imax*1.25,fcb=nextStd(need),Inm=Cx.mag(In),nwire=wye?wireLabel(Inm*1.25):'';
+  D={V,VN,groups,Pl,Il,ph,lineTerms,Ivec,In,Inm,Ilines,Pt,Ibal,Imax,worst,need,fcb,fwire:wireLabel(fcb),nwire,Sbal:SQ3*V*Imax};
+  const desc=l=>ST[l.id].filter(r=>r.n>0&&r.w>0).map(r=>r.n+' × '+fmt(r.w,0)+' W').join(' + ')||'none';
+  const nm=id=>'I<sub>'+id.toLowerCase()+'</sub>',termTxt=k=>lineTerms[k].map((t,i)=>(t[1]>0?(i?' + ':''):(i?' − ':'−'))+nm(t[0])).join('')||'0';
   g('#hSteps').innerHTML=`<ol class="steps">
-  <li><b>Load on each line-to-line leg</b> (watts = count × rating):<div class="tbl"><table><tr><th>Leg</th><th>Heaters</th><th>Load</th><th>Leg current = W ÷ ${V} V</th></tr>${lg.map((r,l)=>`<tr><td>${r[0]}</td><td>${desc(l)}</td><td>${fmt(r[1],0)} W</td><td>${f2(r[2])} A</td></tr>`).join('')}<tr><td><b>Total</b></td><td></td><td><b>${fmt(Pt,0)} W</b></td><td></td></tr></table></div></li>
-  <li><b>Demand factor.</b> Fixed heaters are continuous, resistive loads: take <b>100 %</b> demand (no reduction), so the connected load ${f2(Pt/1000)} kW = ${f2(Pt/1000)} kVA is the demand.</li>
-  <li><b>Line currents are vector differences</b> (the loads are not equal, so you can’t just divide by √3):<br>I<sub>a</sub> = I<sub>ab</sub> − I<sub>ca</sub> = <b>${f1(Ilines[0])} A</b> &nbsp; I<sub>b</sub> = I<sub>bc</sub> − I<sub>ab</sub> = <b>${f1(Ilines[1])} A</b> &nbsp; I<sub>c</sub> = I<sub>ca</sub> − I<sub>bc</sub> = <b>${f1(Ilines[2])} A</b></li>
-  <li><b>Check against the balanced shortcut:</b> ${fmt(Pt,0)} W ÷ (√3 × ${V} V) = ${f1(Ibal)} A. The worst line (<b>${worst}</b>) actually carries <b>${f1(Imax)} A</b>, ${f1((Imax/Ibal-1)*100)} % more, so size the feeder from the highest line current.</li>
-  <li><b>Maximum demand on the service:</b> highest line current <b>${f1(Imax)} A</b> (equivalent to √3 × ${V} × ${f1(Imax)} = ${f2(D.Sbal/1000)} kVA of capacity needed).</li>
-  <li><b>Feeder (continuous load × 125 %):</b> ${f1(Imax)} × 1.25 = <b>${f1(need)} A</b> → feeder circuit breaker <b>${fcb} A, 3-pole</b>; conductors at least ${fcb} A → <b>${D.fwire}</b> (Table 28.1, 75 °C copper).</li>
-  <li><b>Branch circuits</b> (one 2-pole breaker per heater group; I = W ÷ ${V} V, × 125 %, next standard size up):<div class="tbl"><table><tr><th>Leg</th><th>Group</th><th>Load</th><th>I</th><th>× 125 %</th><th>Breaker</th><th>Conductor</th></tr>${groups.map(x=>`<tr><td>${LEG[x.leg]}</td><td>${x.n} × ${fmt(x.w,0)} W</td><td>${fmt(x.P,0)} W</td><td>${f2(x.I)} A</td><td>${f2(x.need)} A</td><td><b>${x.cb} A 2P</b></td><td>${x.wire}</td></tr>`).join('')}</table></div></li></ol>
-  <div class="why"><b>Answer for the problem as stated (230 V):</b> leg currents 14.67 / 18.48 / 13.59 A; line currents A ${f1(D.Ilines[0])} A, B ${f1(D.Ilines[1])} A, C ${f1(D.Ilines[2])} A. Maximum demand = <b>${f1(Imax)} A</b> on line ${worst}, feeder breaker <b>${fcb} A</b>.</div>
-  <p class="note">Check the heater nameplates: if a heater is marked with a maximum breaker size, or the heater manufacturer’s instructions require a particular overcurrent device, that marking governs. Group heaters into circuits that meet the NEC 424 / 210 rules for your installation; this page uses one breaker per group for clarity.</p>`;
-  g('#hSvg').innerHTML=svg();
- };
+  <li><b>Load on each ${wye?'connection':'line-to-line leg'}</b> (watts = count × rating; current = W ÷ the voltage across the heater):<div class="tbl"><table><tr><th>${wye?'Connection':'Leg'}</th><th>Heaters</th><th>Load</th><th>Voltage</th><th>Current</th></tr>${LEGS.map(l=>`<tr><td>${l.lab}</td><td>${desc(l)}</td><td>${fmt(Pl[l.id],0)} W</td><td>${f1(l.ln?VN:V)} V</td><td>${f2(Il[l.id])} A</td></tr>`).join('')}<tr><td><b>Total</b></td><td></td><td><b>${fmt(Pt,0)} W</b></td><td></td><td></td></tr></table></div></li>
+  <li><b>Demand factor.</b> Fixed heaters are continuous, resistive loads: take <b>100 %</b> demand, so the connected load ${f2(Pt/1000)} kW = ${f2(Pt/1000)} kVA is the demand.</li>
+  <li><b>Line currents are vector sums</b> (the loads are not equal, so you can’t just divide by √3):<br>${['a','b','c'].map((k,i)=>nm(k)+' = '+termTxt(k)+' = <b>'+f1(Ilines[i])+' A</b>').join(' &nbsp; ')}</li>
+  ${wye?`<li><b>Neutral current</b> = vector sum of the line currents: I<sub>n</sub> = I<sub>a</sub> + I<sub>b</sub> + I<sub>c</sub> = <b>${f1(Inm)} A</b>${Inm<0.05?' (line-to-line loads, and balanced line-to-neutral loads, add no neutral current)':''}.</li>`:''}
+  <li><b>Check against the balanced shortcut:</b> ${fmt(Pt,0)} W ÷ (√3 × ${V} V) = ${f1(Ibal)} A. The worst line (<b>${worst}</b>) carries <b>${f1(Imax)} A</b>${Ibal>0?', '+f1((Imax/Ibal-1)*100)+' % '+(Imax>=Ibal?'more':'less'):''}, so size the feeder from the highest line current.</li>
+  <li><b>Maximum demand on the service:</b> highest line current <b>${f1(Imax)} A</b> (≈ √3 × ${V} × ${f1(Imax)} = ${f2(D.Sbal/1000)} kVA of capacity needed).</li>
+  <li><b>Feeder (continuous load × 125 %):</b> ${f1(Imax)} × 1.25 = <b>${f1(need)} A</b> → feeder circuit breaker <b>${fcb} A, 3-pole</b>; line conductors at least ${fcb} A → <b>${D.fwire}</b> (Table 28.1, 75 °C copper).${wye?` Neutral: ${f1(Inm)} × 1.25 = ${f1(Inm*1.25)} A → <b>${Inm>0.05?nwire:'minimum size'}</b>.`:''}</li>
+  <li><b>Branch circuits</b> (one breaker per heater group; I = W ÷ V, × 125 %, next standard size up):<div class="tbl"><table><tr><th>${wye?'Connection':'Leg'}</th><th>Group</th><th>Load</th><th>V</th><th>I</th><th>× 125 %</th><th>Breaker</th><th>Conductor</th></tr>${groups.map(x=>`<tr><td>${x.lab}</td><td>${x.n} × ${fmt(x.w,0)} W</td><td>${fmt(x.P,0)} W</td><td>${f1(x.Vl)}</td><td>${f2(x.I)} A</td><td>${f2(x.need)} A</td><td><b>${x.cb} A ${x.ln?'1P':'2P'}</b></td><td>${x.wire}</td></tr>`).join('')||'<tr><td colspan="8">No heater groups entered.</td></tr>'}</table></div></li></ol>
+  <div class="why"><b>Result:</b> line currents A ${f1(Ilines[0])} A, B ${f1(Ilines[1])} A, C ${f1(Ilines[2])} A${wye?`, neutral ${f1(Inm)} A`:''}. Maximum demand = <b>${f1(Imax)} A</b> on line ${worst}; feeder breaker <b>${fcb} A</b>.</div>
+  <p class="note">Check the heater nameplates: a marked maximum breaker size or the maker’s instructions override these sizes. Group heaters into circuits that meet the NEC 424 / 210 rules for your installation; this page uses one breaker per group for clarity.</p>`;
+  g('#hSvg').innerHTML=svg()};
+ /* ---- one-line diagram ---- */
  const svg=()=>{
-  const W=800,H=420,Y=[60,100,140],col=['var(--ph-a)','var(--ph-b)','var(--ph-c)'],nm=['A','B','C'],N=D.groups.length||1;
-  const tap=[[0,1],[1,2],[0,2]];
-  let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;min-width:640px;max-width:900px;font-family:system-ui;font-size:11px" role="img" aria-label="Heater service one-line diagram">`;
-  s+=`<rect x="8" y="40" width="70" height="120" rx="6" fill="var(--acc2)" stroke="var(--acc)"/><text x="43" y="92" text-anchor="middle" font-weight="700" fill="var(--ink)">${D.V} V</text><text x="43" y="108" text-anchor="middle" fill="var(--ink)">3-phase</text><text x="43" y="123" text-anchor="middle" fill="var(--mut)">delta</text>`;
-  Y.forEach((y,i)=>{s+=`<line x1="78" y1="${y}" x2="772" y2="${y}" stroke="${col[i]}" stroke-width="3"/><text x="782" y="${y+4}" font-weight="700" fill="${col[i]}">${nm[i]}</text><text x="84" y="${y-6}" fill="${col[i]}" font-weight="600">I${nm[i].toLowerCase()} = ${f1(D.Ilines[i])} A</text>`});
-  s+=`<rect x="150" y="44" width="40" height="112" rx="5" fill="var(--card)" stroke="var(--ink)" stroke-width="2"/><text x="170" y="36" text-anchor="middle" font-weight="700" fill="var(--ink)">Feeder CB</text><text x="170" y="100" text-anchor="middle" font-weight="700" fill="var(--ink)">${D.fcb} A</text><text x="170" y="116" text-anchor="middle" fill="var(--mut)">3-pole</text><text x="170" y="172" text-anchor="middle" fill="var(--mut)">${D.fwire}</text>`;
-  const x0=250,x1=730,step=N>1?(x1-x0)/(N-1):0;
-  D.groups.forEach((gp,i)=>{const x=N>1?x0+i*step:490,[p,q]=tap[gp.leg],xa=x,xb=x+24;
-   s+=`<line x1="${xa}" y1="${Y[p]}" x2="${xa}" y2="190" stroke="${col[p]}" stroke-width="2"/><line x1="${xb}" y1="${Y[q]}" x2="${xb}" y2="190" stroke="${col[q]}" stroke-width="2"/><circle cx="${xa}" cy="${Y[p]}" r="3.5" fill="${col[p]}"/><circle cx="${xb}" cy="${Y[q]}" r="3.5" fill="${col[q]}"/>`;
-   s+=`<rect x="${xa-5}" y="190" width="34" height="30" rx="4" fill="var(--card)" stroke="var(--ink)" stroke-width="1.8"/><text x="${xa+12}" y="205" text-anchor="middle" font-weight="700" fill="var(--ink)">${gp.cb} A</text><text x="${xa+12}" y="215" text-anchor="middle" fill="var(--mut)" font-size="9">2-pole</text>`;
-   s+=`<line x1="${xa}" y1="218" x2="${xa}" y2="246" stroke="${col[p]}" stroke-width="2"/><line x1="${xb}" y1="218" x2="${xb}" y2="246" stroke="${col[q]}" stroke-width="2"/>`;
-   s+=`<rect x="${xa-5}" y="246" width="34" height="46" rx="4" fill="var(--warnbg)" stroke="var(--warn)" stroke-width="1.5"/><path d="M${xa+12} 250 l-8 4 l16 6 l-16 6 l16 6 l-16 6 l8 4" fill="none" stroke="var(--warn)" stroke-width="1.6"/>`;
-   s+=`<text x="${xa+12}" y="312" text-anchor="middle" font-weight="700" fill="var(--ink)">${LEG[gp.leg]}</text><text x="${xa+12}" y="327" text-anchor="middle" fill="var(--ink)">${gp.n} × ${fmt(gp.w,0)} W</text><text x="${xa+12}" y="341" text-anchor="middle" fill="var(--ink)">${fmt(gp.P,0)} W</text><text x="${xa+12}" y="355" text-anchor="middle" fill="var(--mut)">${f2(gp.I)} A</text><text x="${xa+12}" y="369" text-anchor="middle" fill="var(--mut)">${gp.wire.split(' (')[0]}</text>`});
-  s+=`<text x="20" y="396" fill="var(--mut)">Branch breakers: 2-pole, sized at 125 % of the heater current.</text><text x="20" y="411" fill="var(--mut)">Feeder breaker: 3-pole, sized at 125 % of the highest line current (${f1(D.Imax)} A on line ${D.worst}).</text></svg>`;
+  const names=['A','B','C','N'],Ys=wye?[60,100,140,180]:[60,100,140],nL=Ys.length,cols=[cA,cB,cC,'var(--mut)'],N=D.groups.length;
+  const W=Math.max(800,250+Math.max(N-1,0)*105+90),yb=Ys[nL-1]+50,yh=yb+58,H=yh+180;
+  const x0=250,x1=W-90,step=N>1?(x1-x0)/(N-1):0;
+  let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;min-width:${Math.round(W*0.78)}px;font-family:system-ui;font-size:11px" role="img" aria-label="Heater service one-line diagram">`;
+  s+=`<rect x="8" y="40" width="70" height="${Ys[nL-1]-40+22}" rx="6" fill="var(--acc2)" stroke="var(--acc)"/><text x="43" y="${wye?84:92}" text-anchor="middle" font-weight="700" fill="var(--ink)">${wye?f1(D.V)+' V':D.V+' V'}</text>${wye?`<text x="43" y="99" text-anchor="middle" fill="var(--ink)">${f1(D.VN)} V L-N</text>`:''}<text x="43" y="${wye?115:108}" text-anchor="middle" fill="var(--ink)">3-phase</text><text x="43" y="${wye?130:123}" text-anchor="middle" fill="var(--mut)">${wye?'wye, 4-wire':'delta'}</text>`;
+  Ys.forEach((y,i)=>{const lab=i<3?'I'+names[i].toLowerCase()+' = '+f1(D.Ilines[i])+' A':'In = '+f1(D.Inm)+' A';
+   s+=`<line x1="78" y1="${y}" x2="${W-30}" y2="${y}" stroke="${cols[i]}" stroke-width="3"/><text x="${W-22}" y="${y+4}" font-weight="700" fill="${cols[i]}">${names[i]}</text><text x="84" y="${y-6}" fill="${cols[i]}" font-weight="600">${lab}</text>`});
+  s+=`<rect x="150" y="44" width="40" height="112" rx="5" fill="var(--card)" stroke="var(--ink)" stroke-width="2"/><text x="170" y="36" text-anchor="middle" font-weight="700" fill="var(--ink)">Feeder CB</text><text x="170" y="100" text-anchor="middle" font-weight="700" fill="var(--ink)">${D.fcb} A</text><text x="170" y="116" text-anchor="middle" fill="var(--mut)">3-pole</text><text x="170" y="${Ys[nL-1]+(wye?30:32)}" text-anchor="middle" fill="var(--mut)">${D.fwire.split(' (')[0]}</text>${wye?`<text x="170" y="${Ys[nL-1]+44}" text-anchor="middle" fill="var(--mut)">N: ${D.Inm>0.05?D.nwire.split(' (')[0]:'—'}</text>`:''}`;
+  D.groups.forEach((gp,i)=>{const x=N>1?x0+i*step:(x0+x1)/2,l=legBy(gp.leg),ia=names.indexOf(l.a),ib=names.indexOf(l.b),xa=x,xb=x+24,ca=cols[ia],cb2=cols[ib];
+   s+=`<circle cx="${xa}" cy="${Ys[ia]}" r="3.5" fill="${ca}"/><circle cx="${xb}" cy="${Ys[ib]}" r="3.5" fill="${cb2}"/>`;
+   if(!gp.ln){
+    s+=`<line x1="${xa}" y1="${Ys[ia]}" x2="${xa}" y2="${yb}" stroke="${ca}" stroke-width="2"/><line x1="${xb}" y1="${Ys[ib]}" x2="${xb}" y2="${yb}" stroke="${cb2}" stroke-width="2"/>`;
+    s+=`<rect x="${xa-5}" y="${yb}" width="34" height="30" rx="4" fill="var(--card)" stroke="var(--ink)" stroke-width="1.8"/><text x="${xa+12}" y="${yb+15}" text-anchor="middle" font-weight="700" fill="var(--ink)">${gp.cb} A</text><text x="${xa+12}" y="${yb+25}" text-anchor="middle" fill="var(--mut)" font-size="9">2-pole</text>`;
+    s+=`<line x1="${xa}" y1="${yb+30}" x2="${xa}" y2="${yh}" stroke="${ca}" stroke-width="2"/><line x1="${xb}" y1="${yb+30}" x2="${xb}" y2="${yh}" stroke="${cb2}" stroke-width="2"/>`}
+   else{
+    s+=`<line x1="${xa}" y1="${Ys[ia]}" x2="${xa}" y2="${yb}" stroke="${ca}" stroke-width="2"/><rect x="${xa-7}" y="${yb}" width="27" height="30" rx="4" fill="var(--card)" stroke="var(--ink)" stroke-width="1.8"/><text x="${xa+6.5}" y="${yb+14}" text-anchor="middle" font-weight="700" fill="var(--ink)" font-size="9">${gp.cb} A</text><text x="${xa+6.5}" y="${yb+25}" text-anchor="middle" fill="var(--mut)" font-size="7">1-pole</text><line x1="${xa}" y1="${yb+30}" x2="${xa}" y2="${yh}" stroke="${ca}" stroke-width="2"/><line x1="${xb}" y1="${Ys[ib]}" x2="${xb}" y2="${yh}" stroke="${cb2}" stroke-width="2"/>`}
+   s+=`<rect x="${xa-5}" y="${yh}" width="34" height="46" rx="4" fill="var(--warnbg)" stroke="var(--warn)" stroke-width="1.5"/><path d="M${xa+12} ${yh+4} l-8 4 l16 6 l-16 6 l16 6 l-16 6 l8 4" fill="none" stroke="var(--warn)" stroke-width="1.6"/>`;
+   const ty=yh+66;
+   s+=`<text x="${xa+12}" y="${ty}" text-anchor="middle" font-weight="700" fill="var(--ink)">${gp.lab}</text><text x="${xa+12}" y="${ty+15}" text-anchor="middle" fill="var(--ink)">${gp.n} × ${fmt(gp.w,0)} W</text><text x="${xa+12}" y="${ty+29}" text-anchor="middle" fill="var(--ink)">${fmt(gp.P,0)} W</text><text x="${xa+12}" y="${ty+43}" text-anchor="middle" fill="var(--mut)">${f2(gp.I)} A @ ${f1(gp.Vl)} V</text><text x="${xa+12}" y="${ty+57}" text-anchor="middle" fill="var(--mut)">${gp.wire.split(' (')[0]}</text>`});
+  if(!N)s+=`<text x="250" y="${yb+20}" fill="var(--mut)">Add heater groups to draw the branch circuits.</text>`;
+  s+=`<text x="20" y="${H-26}" fill="var(--mut)">Branch breakers sized at 125 % of the heater current (${wye?'2-pole line-to-line, 1-pole line-to-neutral':'2-pole'}).</text><text x="20" y="${H-11}" fill="var(--mut)">Feeder breaker: 3-pole, sized at 125 % of the highest line current (${f1(D.Imax)} A on line ${D.worst}).</text></svg>`;
   return s};
- ['#hV','#hn0','#hn1','#hn2','#hn3','#hn4','#hn5','#hw0','#hw1','#hw2','#hw3','#hw4','#hw5'].forEach(s=>g(s).oninput=calc);
  m.querySelectorAll('[data-hs]').forEach(b=>b.onclick=()=>{sel=b.dataset.hs;m.querySelectorAll('[data-hs]').forEach(x=>x.classList.toggle('on',x===b))});
- calc();
- const ink=()=>css('--ink'),mut=()=>css('--mut'),cA=()=>css('--ph-a'),cB=()=>css('--ph-b'),cC=()=>css('--ph-c');
+ g('#hV').oninput=calc;
+ drawEd();calc();
+ const ink=()=>css('--ink'),mut=()=>css('--mut'),pcol={A:()=>css('--ph-a'),B:()=>css('--ph-b'),C:()=>css('--ph-c')};
  const draw=()=>{if(!D)return;
-  const{Iab,Ibc,Ica,Ia,Ib,Ic}=D,set={a:[Iab,Ica,Ia,'Iab','Ica','Ia'],b:[Ibc,Iab,Ib,'Ibc','Iab','Ib'],c:[Ica,Ibc,Ic,'Ica','Ibc','Ic']}[sel],[X,Y,Z,nx,ny,nz]=set,col={Iab:cA(),Ibc:cB(),Ica:cC()};
-  {const{x,w}=cvH1,h=300;cvH1.clear();const nY=Cx.sc(Y,-1),F=phFit([[0,0],X,Cx.add(X,nY),Y],w,h,40),P=F.P,tt=T%5.5,s=phEase(Math.max(0,Math.min(1,(tt-0.8)/2.4))),end=Cx.add(X,Cx.sc(nY,s));
-   phArrow(x,P([0,0]),P(Y),col[ny],2,ny+' '+f1(Cx.mag(Y))+' A',{dash:[4,4]});
-   phArrow(x,P([0,0]),P(X),col[nx],3,nx+' '+f1(Cx.mag(X))+' A',{mid:true,off:14});
-   if(s>0.02)phArrow(x,P(X),P(end),col[ny],3,s>0.9?'−'+ny:'',{dash:[5,4],mid:true,off:-14});
-   phArrow(x,P([0,0]),P(end),ink(),3.5,s>0.97?nz+' = '+f1(Cx.mag(Z))+' A':'',{mid:true,off:16})}
-  {const{x,w}=cvH2,h=300;cvH2.clear();const r=D.Ibal,F=phFit([[0,0],Ia,Ib,Ic,[r,0],[-r,0],[0,r],[0,-r]],w,h,44),P=F.P,o=P([0,0]);
+  const terms=D.lineTerms[sel],L=sel.toUpperCase(),colOf=id=>pcol[id[0]](),Z=D.Ivec[sel];
+  {const{x,w}=cv1,h=300;cv1.clear();
+   const pts=[[0,0]];let cur=[0,0];terms.forEach(t=>{const v=D.ph[t[0]];cur=t[1]>0?Cx.add(cur,v):Cx.sub(cur,v);pts.push(cur)});
+   const F=phFit(pts.length>1?pts.concat(terms.map(t=>D.ph[t[0]])):[[0,0],[1,1]],w,h,42),P=F.P;
+   const n=terms.length,u=(T%(n*1.7+3))/1.1,seg=i=>phEase(Math.max(0,Math.min(1,u-i)));
+   let st=[0,0];terms.forEach((t,i)=>{const v=Cx.sc(D.ph[t[0]],t[1]),sv=seg(i);if(sv>0.02){const e=Cx.add(st,Cx.sc(v,sv));phArrow(x,P(st),P(e),colOf(t[0]),3,sv>0.95?(t[1]<0?'−':'')+'I'+t[0].toLowerCase()+' '+f1(Cx.mag(v))+' A':'',{mid:true,off:i%2?-15:15,dash:t[1]<0?[5,4]:null})}st=Cx.add(st,v)});
+   if(n&&u>n+0.2){x.globalAlpha=Math.min(1,u-n-0.2);phArrow(x,P([0,0]),P(st),ink(),3.5,'I'+L.toLowerCase()+' = '+f1(Cx.mag(Z))+' A',{mid:true,off:-18});x.globalAlpha=1}
+   if(!n){x.fillStyle=mut();x.font='12px system-ui';x.textAlign='center';x.fillText('No load on line '+L,w/2,h/2)}}
+  {const{x,w}=cv2,h=300;cv2.clear();const r=D.Ibal,vs=[D.Ivec.a,D.Ivec.b,D.Ivec.c];if(wye)vs.push(D.In);
+   const F=phFit([[0,0],...vs,[r,0],[-r,0],[0,r],[0,-r]],w,h,44),P=F.P,o=P([0,0]);
    x.strokeStyle=css('--line');x.lineWidth=1;x.beginPath();x.moveTo(o[0]-w/2,o[1]);x.lineTo(o[0]+w/2,o[1]);x.moveTo(o[0],o[1]-h/2);x.lineTo(o[0],o[1]+h/2);x.stroke();
    x.strokeStyle=mut();x.setLineDash([5,4]);x.beginPath();x.arc(o[0],o[1],r*F.k,0,7);x.stroke();x.setLineDash([]);x.fillStyle=mut();x.font='11px system-ui';x.textAlign='left';x.fillText('P ÷ (√3·V) = '+f1(r)+' A',8,16);
-   [[Ia,'Ia',cA()],[Ib,'Ib',cB()],[Ic,'Ic',cC()]].forEach(([c,n,cl])=>phArrow(x,o,P(c),cl,('abc'[['Ia','Ib','Ic'].indexOf(n)]===sel)?4:2.5,n+' '+f1(Cx.mag(c))+' A'))}};
+   [[D.Ivec.a,'Ia',pcol.A(),'a'],[D.Ivec.b,'Ib',pcol.B(),'b'],[D.Ivec.c,'Ic',pcol.C(),'c']].forEach(([c,nme,cl,k])=>phArrow(x,o,P(c),cl,k===sel?4:2.5,nme+' '+f1(Cx.mag(c))+' A'));
+   if(wye&&D.Inm>0.05)phArrow(x,o,P(D.In),ink(),2.5,'In '+f1(D.Inm)+' A',{dash:[6,4]})}};
  let raf,last=performance.now();
  const loop=now=>{T+=Math.min(0.05,(now-last)/1000);last=now;draw();raf=requestAnimationFrame(loop)};
  raf=requestAnimationFrame(loop);
