@@ -1,6 +1,8 @@
 # UL 508A MTR exam study site
 
-Open **`ul508a-mtr-study.html`** in a browser (works offline, no build step). Keep the `vendor/katex/` folder next to it: it holds [KaTeX](https://katex.org) (MIT, v0.16.11) used to typeset the math. Without it the page still works and shows the formulas as plain text.
+**Live site:** https://deg333.github.io/ul-practice/ (GitHub Pages, served from the `main` branch root).
+
+Or open **`index.html`** in a browser (works offline, no build step; `ul508a-mtr-study.html` just redirects to it). Keep the `vendor/katex/` folder next to it: it holds [KaTeX](https://katex.org) (MIT, v0.16.11) used to typeset the math. Without it the page falls back to loading KaTeX from a CDN, or shows the formulas as plain text when offline.
 
 - **Interactive tables** – hover highlights the row and column (merged headers handled), click pins the highlight and copies the value (numbers copied without commas/units), Esc clears
 - **Bookmark tabs** (left edge) – five colored tabs that slide out reference tables from any page: Motor FLC, Protection & rounding, Wire (Tables 28.1 / 38.1), SCCR (SB4.1 / SB4.2) and Transformers (450.3(B), SB4.3 / SB4.4)
