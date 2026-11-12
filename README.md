@@ -39,3 +39,6 @@ Given, Find and Equations are now shown as KaTeX-typeset math. Click (or tab int
 
 ## Heater problem: add groups, wye version
 The heater problem now lets you add and remove heater groups on every leg, and a new tab solves the same kind of problem on a wye (4-wire) service with line-to-line and line-to-neutral groups, neutral current, 1-pole and 2-pole breakers and a one-line diagram.
+
+## SCCR Practice page
+A new **SCCR Practice** tab generates random, realistic 480 V panels (3-9 branch circuits: motor, heater, control; feeder with fusible disconnect or main breaker). Pick or type each branch SCCR and interrupting rating, the feeder values and the final panel SCCR, then check, retry or show the step-by-step solution. Easy/Medium/Hard levels (Hard adds invalid tested-combination traps), numbered problems and a score. Laid out for desktop and iPhone 15 width.

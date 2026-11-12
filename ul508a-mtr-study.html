@@ -130,6 +130,19 @@ textarea.paper{font:15px/20px ui-monospace,Menlo,Consolas,monospace;padding:0 6p
 .pans{margin-top:8px}.pans .ok2{border:2px solid var(--te);border-radius:8px;padding:4px 10px;margin:6px 0;background:var(--okbg);font-size:1.05rem;overflow-x:auto}.pans .nf{color:var(--warn);font-size:.85rem;margin:4px 0}
 .pchips{flex:0 0 auto}
 @media print{#pad{display:none}}
+/* ---- SCCR practice page ---- */
+.scp-ctl{display:flex;flex-wrap:wrap;gap:10px;align-items:center}.scp-ctl label{display:flex;gap:6px;align-items:center}.scp-ctl select,.kf select,.kf input{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-height:44px}
+.scp-score{background:var(--acc2);color:var(--acc);padding:4px 10px;border-radius:99px;font-weight:600;font-size:.85rem}
+.scp-help{padding:6px 2px;font-size:.92rem}.scp-help li{margin:6px 0}
+.scp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px;margin-bottom:14px}.scp-grid .card{margin:0}
+.scp-svg{width:100%;height:auto;max-height:96px;display:block;margin:4px 0 6px}
+.scp-t{width:100%;border-collapse:collapse;font-size:.86rem}.scp-t th,.scp-t td{padding:5px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}.scp-t th{color:var(--mut);font-weight:600;font-size:.78rem}.scp-t tr.ne td{color:var(--mut);font-style:italic}.scp-t td.mk.none{color:var(--bad);font-weight:600}
+.scp-in{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}.kf label{display:block;font-size:.8rem;color:var(--mut);margin-bottom:3px}.kf select,.kf input{width:100%;font-size:16px;box-sizing:border-box}.kf input{margin-top:6px}.kf .kr{display:block;font-size:.8rem;min-height:1.1em;margin-top:2px;color:var(--mut)}
+.kf.ok select,.kf.ok input{border-color:var(--ok);box-shadow:0 0 0 2px var(--okbg)}.kf.ok .kr{color:var(--ok);font-weight:600}.kf.bad select,.kf.bad input{border-color:var(--bad);box-shadow:0 0 0 2px var(--badbg)}.kf.bad .kr{color:var(--bad);font-weight:600}
+.scp-sol{margin-top:10px;padding:8px 10px;border-left:4px solid var(--ok);background:var(--okbg);border-radius:0 8px 8px 0;font-size:.9rem}.scp-sol[hidden]{display:none}.scp-sol p{margin:4px 0}
+.scp-bar{position:sticky;bottom:0;z-index:4;display:flex;gap:8px;padding:8px;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 -4px 14px rgba(0,0,0,.12)}.scp-bar .btn{flex:1;min-height:44px}
+@media(max-width:700px){.scp-grid{grid-template-columns:1fr}.scp-in{grid-template-columns:1fr 1fr;gap:8px}.scp-ctl .btn{flex:1 1 40%;min-height:44px}.scp-t{font-size:.82rem}.scp-head h2{font-size:1.15rem}}
+
 </style>
 </head>
 <body>
@@ -2268,12 +2281,166 @@ function viewHeaterProb(m,mode){
  raf=requestAnimationFrame(loop);
  stopFn=()=>{cancelAnimationFrame(raf);window.removeEventListener('resize',rs)}}
 
-const VIEWS={parts:['Exam Parts',viewParts],part1:['Part 1',()=>viewPart(1)],part2:['Part 2',()=>viewPart(2)],part3:['Part 3',()=>viewPart(3)],part4:['Part 4',()=>viewPart(4)],study:['All Questions',viewStudy],power:['Power Transformers',()=>viewSection('power')],control:['Control Transformers',()=>viewSection('control')],sccr:['SCCR',()=>viewSection('sccr')],quiz:['Quiz',viewQuiz],sim:['Simulators',viewSim],phasor:['3-Phase Phasors',viewPhasor],ref:['Reference',viewRef]};
+/* ============================== SCCR practice page (random panels) ============================== */
+const SCP_KA=[0.2,1,2,3.5,5,10,14,18,22,25,30,35,42,50,65,85,100,125,150,200];
+const scpRng=seed=>{let a=seed>>>0;return()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296}};
+const scpKa=v=>fmt(v,2)+' kA';
+const scpVal=c=>c.val!=null?c.val:(c.marked!=null?c.marked:c.def);
+function scpGen(seed,nbWant,diff){
+ const R=scpRng(seed),pick=a=>a[Math.floor(R()*a.length)],chance=p=>R()<p;
+ const d=diff==='easy'?0:diff==='hard'?2:1,pTrap=[0,0.12,0.3][d],pTb=[0.2,0.4,0.55][d],pMarkHold=[0.75,0.6,0.5][d];
+ const nb=nbWant||(3+Math.floor(R()*7));
+ const C=o=>Object.assign({sc:true,ev:true,marked:null,def:null,ir:null,val:null,mkS:'',mk:'',note:''},o);
+ const fuseComps=(amp,cls)=>{ // returns [fuse, holder]
+  const f=C({kind:'fuse',name:cls+' fuse',rating:amp+' A',sc:false,ir:200,mk:'Interrupting rating 200 kA',mkS:'IR 200 kA',short:[amp+' A',cls.replace('Class ','Cl. ')+' fuse']});
+  const m=chance(pMarkHold)?pick([100,200]):null;
+  const h=C({kind:'holder',name:'Fuse block / holder ('+cls+')',rating:amp+' A',marked:m,def:10,mk:m?'Marked SCCR '+m+' kA':'No SCCR marked',mkS:m?'SCCR '+m+' kA':'no mark',short:['Holder',cls.replace('Class ','Cl. ')]});
+  return[f,h]};
+ const cbComp=(amp,what)=>{const ir=pick(d===0?[14,18,25,35,65]:d===1?[10,14,18,25,35,42,65]:[5,10,14,18,22,25,35,65]);
+  return C({kind:'cb',name:what||'Inverse-time circuit breaker (UL 489)',rating:amp+' A',marked:ir,def:5,ir,mk:'Interrupting rating '+ir+' kA',mkS:'IR '+ir+' kA',short:[amp+' A','Breaker']})};
+ const tbComp=()=>{const m=chance(0.3)?pick([25,50,100]):null;return C({kind:'tb',name:'Terminal block / power distribution block',rating:pick(['30 A','60 A','100 A']),marked:m,def:10,mk:m?'Marked SCCR '+m+' kA':'No SCCR marked',mkS:m?'SCCR '+m+' kA':'no mark',short:['Term.','block']})};
+ const kinds=['motor'];while(kinds.length<nb)kinds.push(pick(['motor','motor','motor','heater','heater','control']));
+ if(nb>=5&&!kinds.includes('control'))kinds[nb-1]='control';
+ const hps=[1,2,3,5,7.5,10,15,20,25,30,40,50];
+ const branches=kinds.map((kind,i)=>{
+  const b={kind,comps:[],num:i+1,amps:0};
+  if(kind==='motor'){
+   const hp=pick(hps),flc=FLC3[460][hp];b.amps=flc;b.title='Motor '+hp+' hp';b.sub='480 V, 3-phase · FLC '+flc+' A';b.load={t:'M',kind:'motor'};
+   const useFuse=chance(0.6);let cls='',amp=0;
+   if(useFuse){cls=pick(flc*1.75<=30?['Class CC','Class J','Class RK5']:['Class J','Class J','Class RK5','Class T']);amp=nextUp(flc*1.75);const[f,h]=fuseComps(amp,cls);b.comps.push(f,h)}
+   else{amp=nextUp(flc*2.5,STDCB);b.comps.push(cbComp(amp))}
+   const combo=useFuse&&chance(d===0?0.3:0.4);
+   if(combo){
+    const kA=pick([18,30,42,65,100]),trap=chance(pTrap),stdMax=[15,20,25,30,35,40,45,50,60,70,80,90,100,110,125,150,175,200];
+    let maxA=nextUp(amp,stdMax)||amp,mcls=cls;
+    if(trap){const lower=stdMax.filter(v=>v<amp);if(lower.length&&chance(0.5))maxA=lower[lower.length-1];else mcls=(cls==='Class J'?'Class RK5':'Class J')}
+    const valid=mcls===cls&&amp<=maxA;
+    b.comps.push(C({kind:'combo',name:'Starter (contactor + overload relay)',rating:hp+' hp',marked:kA,def:5,val:valid?kA:5,mk:'Marked SCCR '+kA+' kA when protected by '+mcls+' fuses, max '+maxA+' A',mkS:kA+' kA w/ '+mcls.replace('Class ','Cl. ')+' ≤'+maxA,short:['Starter','hp '+hp],combo:{kA,mcls,maxA,valid,cls,amp}}));
+   }else{
+    const mc=pick([null,null,10,10,18]),mo=pick([null,null,10]);
+    b.comps.push(C({kind:'ctrl',name:'Contactor (motor controller)',rating:hp+' hp',marked:mc,def:5,mk:mc?'Marked SCCR '+mc+' kA':'No SCCR marked',mkS:mc?'SCCR '+mc+' kA':'no mark',short:['Contactor','hp '+hp]}));
+    b.comps.push(C({kind:'ol',name:'Overload relay',rating:'trip class 10',marked:mo,def:5,mk:mo?'Marked SCCR '+mo+' kA':'No SCCR marked',mkS:mo?'SCCR '+mo+' kA':'no mark',short:['Overload','relay']}));
+   }
+   if(chance(pTb))b.comps.push(tbComp());
+   b.comps.push(C({kind:'load',ev:false,sc:false,name:'Motor '+hp+' hp',rating:flc+' A FLC',mk:'Load – not evaluated',mkS:'load',short:['Motor',hp+' hp']}));
+  }else if(kind==='heater'){
+   const kw=pick([3,5,7.5,10,12,15,20]),I=kw*1000/(SQ3*480);b.amps=I;b.title='Heater '+kw+' kW';b.sub='480 V, 3-phase · '+fmt(I,1)+' A';b.load={t:'H',kind:'heater'};
+   const useFuse=chance(0.45);
+   if(useFuse){const cls=pick(['Class J','Class T','Class CC'].filter(c=>c!=='Class CC'||I*1.25<=30));const amp=nextUp(I*1.25);const[f,h]=fuseComps(amp,cls);b.comps.push(f,h)}
+   else b.comps.push(cbComp(nextUp(I*1.25,STDCB),'Circuit breaker (UL 489)'));
+   const mc=pick([null,null,10,18,25]);
+   b.comps.push(C({kind:'ctrl',name:'Heater contactor (switch)',rating:fmt(I*1.25,0)+' A min',marked:mc,def:5,mk:mc?'Marked SCCR '+mc+' kA':'No SCCR marked',mkS:mc?'SCCR '+mc+' kA':'no mark',short:['Contactor','heater']}));
+   if(chance(pTb))b.comps.push(tbComp());
+   b.comps.push(C({kind:'load',ev:false,sc:false,name:'Resistive heater '+kw+' kW',rating:fmt(I,1)+' A',mk:'Load – not evaluated',mkS:'load',short:['Heater',kw+' kW']}));
+  }else{
+   const va=pick([250,500,750,1000,1500,2000]),Ip=va/480;b.amps=Ip;b.title='Control circuit';b.sub='CPT '+va+' VA, 480–120 V';b.load={t:'CPT',kind:'cpt'};
+   const amp=Ip>=9?nextUp(Ip*1.25,CTRL):Ip>=2?nextDown(Ip*1.67,CTRL):nextDown(Ip*5,CTRL);
+   const[f,h]=fuseComps(amp,'Class CC');b.comps.push(f,h);
+   b.comps.push(C({kind:'cpt',ev:false,sc:false,name:'Control power transformer',rating:va+' VA, 480–120 V',mk:'Transformer – not evaluated',mkS:'no SCCR',short:['CPT',va+' VA']}));
+   b.comps.push(C({kind:'ctl',ev:false,sc:false,name:'Secondary fuse, relays, pushbuttons, PLC',rating:'120 V control circuit',mk:'Control circuit – not evaluated',mkS:'control',short:['120 V','control']}));
+   b.comps=b.comps.filter(c=>c.kind!=='ctl');b.ctl=true;
+  }
+  return b});
+ /* feeder */
+ const tot=branches.reduce((a,b)=>a+b.amps,0),famp=nextUp(tot*1.25,[60,100,125,150,200,225,250,400,600]);
+ const fc=[];let fType;
+ if(chance(0.55)){fType='fuse';const sm=chance(0.55)?pick([65,100]):null;
+  fc.push(C({kind:'sw',name:'Fusible disconnect switch',rating:famp+' A',marked:sm,def:5,mk:sm?'Marked SCCR '+sm+' kA with Class J fuses':'No SCCR marked',mkS:sm?'SCCR '+sm+' kA':'no mark',short:[famp+' A','Fusible sw.']}));
+  fc.push(C({kind:'fuse',name:'Class J fuses (in disconnect)',rating:famp+' A',sc:false,ir:200,mk:'Interrupting rating 200 kA',mkS:'IR 200 kA',short:[famp+' A','Cl. J fuses']}))}
+ else{fType='cb';const ir=pick(d===0?[25,35,42,65]:[14,18,22,25,35,42,65]);
+  fc.push(C({kind:'cb',name:'Main circuit breaker / disconnect (UL 489)',rating:famp+' A',marked:ir,def:5,ir,mk:'Interrupting rating '+ir+' kA',mkS:'IR '+ir+' kA',short:[famp+' A','Main breaker']}))}
+ const bm=chance(0.4)?pick([25,42,65,100]):null;
+ fc.push(C({kind:'bus',name:'Bus bar',rating:famp+' A',marked:bm,def:10,mk:bm?'Marked SCCR '+bm+' kA':'No SCCR marked',mkS:bm?'SCCR '+bm+' kA':'no mark',short:['Bus','bar']}));
+ if(chance(0.55)){const pm=chance(0.4)?pick([25,50,100]):null;fc.push(C({kind:'pdb',name:'Power distribution block',rating:'175 A',marked:pm,def:10,mk:pm?'Marked SCCR '+pm+' kA':'No SCCR marked',mkS:pm?'SCCR '+pm+' kA':'no mark',short:['PDB','']}))}
+ /* ---- shape the answer: lift every part to a target value T, then make one or two parts the weak link ---- */
+ const allc=[...branches.flatMap(b=>b.comps),...fc].filter(c=>c.ev&&(c.sc||c.ir!=null)&&c.kind!=='fuse');
+ const anyTrap=branches.some(b=>b.comps.some(c=>c.kind==='combo'&&!c.combo.valid));
+ const T=anyTrap?5:pick(d===0?[10,10,14,18,22,25,35,42]:d===1?[5,10,14,18,22,25,35,42]:[5,5,10,14,18,22,25,42]);
+ const lifts=[10,14,18,22,25,30,35,42,50,65,100];
+ const setVal=(c,v)=>{
+  if(c.kind==='cb'){c.marked=c.ir=v;c.mk='Interrupting rating '+v+' kA';c.mkS='IR '+v+' kA'}
+  else if(c.kind==='combo'){c.combo.kA=v;c.marked=v;c.val=c.combo.valid?v:5;c.mk='Marked SCCR '+v+' kA when protected by '+c.combo.mcls+' fuses, max '+c.combo.maxA+' A';c.mkS=v+' kA w/ '+c.combo.mcls.replace('Class ','Cl. ')+' ≤'+c.combo.maxA}
+  else{c.marked=v===c.def?null:v;c.mk=c.marked==null?'No SCCR marked':'Marked SCCR '+v+' kA'+(c.kind==='sw'?' with Class J fuses':'');c.mkS=c.marked==null?'no mark':'SCCR '+v+' kA'}};
+ allc.forEach(c=>{const v=c.kind==='cb'?c.ir:scpVal(c);if(c.kind==='combo'&&!c.combo.valid)return;if(v<T)setVal(c,pick(lifts.filter(x=>x>=T&&x<=Math.max(T*3,25)))||T)});
+ if(!anyTrap){const cand=allc.filter(c=>c.kind!=='combo'&&(T>5?(c.kind!=='cb'||T>=10):(c.def===5&&c.kind!=='cb')));
+  for(let k=0,n=1+(chance(0.35)?1:0);k<n&&cand.length;k++){const c=cand.splice(Math.floor(R()*cand.length),1)[0];setVal(c,T)}}
+ branches.forEach(b=>{const sc=b.comps.filter(c=>c.sc&&c.ev),ir=b.comps.filter(c=>c.ir!=null);
+  b.sccr=Math.min(...sc.map(scpVal));b.limSC=sc.filter(c=>scpVal(c)===b.sccr);b.ir=Math.min(...ir.map(c=>c.ir));b.limIR=ir.filter(c=>c.ir===b.ir)});
+ const fsc=fc.filter(c=>c.sc&&c.ev),fir=fc.filter(c=>c.ir!=null);
+ const F={type:fType,comps:fc,sccr:Math.min(...fsc.map(scpVal)),ir:Math.min(...fir.map(c=>c.ir))};
+ F.limSC=fsc.filter(c=>scpVal(c)===F.sccr);F.limIR=fir.filter(c=>c.ir===F.ir);
+ const panel=Math.min(F.sccr,F.ir,...branches.map(b=>b.sccr),...branches.map(b=>b.ir));
+ const lim=[];if(F.sccr===panel)lim.push('Feeder: '+F.limSC.map(c=>c.name).join(', '));if(F.ir===panel)lim.push('Feeder OCPD interrupting rating');
+ branches.forEach(b=>{if(b.sccr===panel)lim.push('Branch '+b.num+': '+b.limSC.map(c=>c.name).join(', '));if(b.ir===panel)lim.push('Branch '+b.num+': '+b.limIR.map(c=>c.name).join(', ')+' interrupting rating')});
+ const pool=[5,10,14,18,22,25,30,42,65],lo=pool.filter(v=>v<=panel),hi=pool.filter(v=>v>panel);
+ const avail=(chance(0.5)&&lo.length)||!hi.length?pick(lo):pick(hi);
+ return{seed,diff,nb,branches,feeder:F,panel,lim,avail,suitable:panel>=avail}}
+function scpSvg(nodes,load){
+ const w=60,g=14,n=nodes.length+1,W=n*w+(n-1)*g+8,H=76,ink='var(--ink)',mut='var(--mut)';
+ let s=`<svg viewBox="0 0 ${W} ${H}" class="scp-svg" role="img" aria-label="Branch circuit one-line"><line x1="0" y1="28" x2="${W-34}" y2="28" stroke="${ink}" stroke-width="2"/>`;
+ nodes.forEach((c,i)=>{const x=4+i*(w+g),sh=c.short||['',''];
+  s+=`<rect x="${x}" y="10" width="${w}" height="36" rx="5" fill="var(--card)" stroke="${ink}" stroke-width="1.6"/><text x="${x+w/2}" y="25" text-anchor="middle" font-size="10.5" font-weight="700" fill="${ink}">${sh[0]}</text><text x="${x+w/2}" y="38" text-anchor="middle" font-size="9" fill="${mut}">${sh[1]}</text><text x="${x+w/2}" y="60" text-anchor="middle" font-size="8.5" fill="${c.marked!=null||c.ir!=null?'var(--acc)':'var(--bad)'}">${(c.mkS||'').slice(0,17)}</text>`});
+ const x=4+nodes.length*(w+g)-4;
+ if(load.kind==='motor')s+=`<circle cx="${x+w/2-6}" cy="28" r="20" fill="var(--card)" stroke="${ink}" stroke-width="1.6"/><text x="${x+w/2-6}" y="34" text-anchor="middle" font-size="17" font-weight="700" fill="${ink}">M</text>`;
+ else if(load.kind==='heater')s+=`<rect x="${x+4}" y="10" width="40" height="36" rx="4" fill="var(--warnbg)" stroke="var(--warn)" stroke-width="1.6"/><path d="M${x+10} 28 l4 -9 l6 18 l6 -18 l6 18 l5 -9" fill="none" stroke="var(--warn)" stroke-width="1.8"/>`;
+ else s+=`<circle cx="${x+14}" cy="28" r="12" fill="var(--card)" stroke="${ink}" stroke-width="1.6"/><circle cx="${x+32}" cy="28" r="12" fill="var(--card)" stroke="${ink}" stroke-width="1.6"/>`;
+ return s+'</svg>'}
+function viewSccrPractice(){
+ const m=$('#main');
+ let st=store.get('ul508a.scp',{seed:Math.floor(Math.random()*90000)+10000,nb:0,diff:'medium',n:0,ok:0});
+ let P=null,checked=false,sol=false;
+ const kaField=(id,label)=>`<div class="kf" data-f="${id}"><label for="s_${id}">${label}</label><select id="s_${id}" data-s="${id}"><option value="">Select…</option>${SCP_KA.map(v=>`<option value="${v}">${scpKa(v)}</option>`).join('')}<option value="other">Other value…</option></select><input type="number" inputmode="decimal" step="any" min="0" data-o="${id}" placeholder="kA" aria-label="${label} (kA)" hidden><span class="kr" aria-live="polite"></span></div>`;
+ const compRows=cs=>cs.map(c=>`<tr class="${c.ev?'':'ne'}"><td>${c.name}</td><td>${c.rating}</td><td class="mk ${c.marked!=null||c.ir!=null||!c.ev?'':'none'}">${c.mk}</td></tr>`).join('');
+ const build=()=>{
+  P=scpGen(st.seed,st.nb,st.diff);checked=false;sol=false;window._scpP=P;
+  m.innerHTML=`<div class="card scp-head"><h2 style="margin:0 0 4px">SCCR practice <small class="note" style="font-weight:400">problem #${P.seed}</small></h2>
+  <p class="note" style="margin:0 0 10px">Look at the panel: a feeder disconnect and ${P.nb} branch circuits. For <b>each branch</b> pick its <b>SCCR</b> (lowest power-circuit component, marked value or SB4.1 default) and its <b>interrupting rating</b> (lowest branch overcurrent device). Then give the <b>feeder</b> values and the final <b>panel SCCR</b>.</p>
+  <div class="scp-ctl"><label>Branches <select id="scpNb"><option value="0">Random 3–9</option>${[3,4,5,6,7,8,9].map(v=>`<option value="${v}" ${st.nb===v?'selected':''}>${v}</option>`).join('')}</select></label>
+  <label>Level <select id="scpDf">${[['easy','Easy'],['medium','Medium'],['hard','Hard (traps)']].map(a=>`<option value="${a[0]}" ${st.diff===a[0]?'selected':''}>${a[1]}</option>`).join('')}</select></label>
+  <button class="btn pri" data-a="new">New problem</button><button class="btn" data-a="check">Check answers</button><button class="btn" data-a="sol">Show solution</button><span class="pill scp-score" id="scpScore"></span></div>
+  <details style="margin-top:10px"><summary><b>Method and default values</b></summary><div class="scp-help"><ol><li><b>Sweep 1 – component SCCR.</b> Use the marked SCCR; if none is marked use the Supplement SB4.1 default. A circuit breaker’s marked interrupting rating is its SCCR. Fuses are not given a component SCCR – they are handled in sweep 2.</li><li><b>Sweep 2 – interrupting ratings</b> of every overcurrent device (fuses and breakers).</li><li>A <b>tested-combination marking</b> (starter with fuse class and maximum size) replaces the 5 kA default <i>only if</i> the installed fuse matches the class and is not larger than the maximum shown.</li><li>Loads, transformers and the control circuit downstream of a CPT are not evaluated.</li><li><b>Panel SCCR</b> = the lowest value found in the feeder, any branch, and any overcurrent device interrupting rating. No series ratings.</li></ol>
+  <div class="tbl"><table><tr><th>Default SCCR (SB4.1)</th><th>kA</th></tr><tr><td>Bus bar</td><td>10</td></tr><tr><td>Fuse holder / fuse block</td><td>10</td></tr><tr><td>Terminal block, power distribution block</td><td>10</td></tr><tr><td>Circuit breaker (unmarked)</td><td>5</td></tr><tr><td>Motor controller 0–50 hp · overload relay</td><td>5</td></tr><tr><td>Switch / contactor / disconnect</td><td>5</td></tr><tr><td>Supplementary protector</td><td>0.2</td></tr></table></div></div></details></div>
+  <div class="card scp-feeder"><h3 style="margin:0 0 4px">Feeder · ${P.feeder.type==='fuse'?'fusible disconnect':'main breaker'}</h3><p class="note" style="margin:0 0 8px">Available fault current at the line terminals: <b>${P.avail} kA</b> · panel rated 480 V, 3-phase</p>
+  <div class="tbl"><table class="scp-t"><tr><th>Component</th><th>Rating</th><th>Marking</th></tr>${compRows(P.feeder.comps)}</table></div>
+  <div class="scp-in">${kaField('fsc','Feeder SCCR')}${kaField('fir','Feeder interrupting rating')}</div><div class="scp-sol" hidden>${solFeeder()}</div></div>
+  <div class="scp-grid">${P.branches.map((b,i)=>`<div class="card scp-br"><h3 style="margin:0">Branch ${b.num} · ${b.title}</h3><p class="note" style="margin:0 0 4px">${b.sub}</p>${scpSvg(b.comps.filter(c=>c.kind!=='load'&&c.kind!=='cpt'&&c.kind!=='ctl'),b.load)}
+   <div class="tbl"><table class="scp-t"><tr><th>Component</th><th>Rating</th><th>Marking</th></tr>${compRows(b.comps)}</table></div>
+   <div class="scp-in">${kaField('b'+i+'sc','Branch '+b.num+' SCCR')}${kaField('b'+i+'ir','Branch '+b.num+' interrupting rating')}</div><div class="scp-sol" hidden>${solBranch(b)}</div></div>`).join('')}</div>
+  <div class="card scp-final"><h3 style="margin:0 0 8px">Panel result</h3><div class="scp-in">${kaField('panel','Panel SCCR')}
+   <div class="kf" data-f="ok"><label for="s_ok">Suitable for ${P.avail} kA available?</label><select id="s_ok" data-s="ok"><option value="">Select…</option><option value="yes">Yes – SCCR ≥ available</option><option value="no">No – SCCR too low</option></select><span class="kr" aria-live="polite"></span></div></div>
+   <div class="scp-sol" hidden>${solPanel()}</div></div>
+  <div class="scp-bar"><button class="btn pri" data-a="check">Check answers</button><button class="btn" data-a="sol">Solution</button><button class="btn" data-a="new">New</button></div>`;
+  paintScore()};
+ const nm=cs=>cs.map(c=>c.name).join(' / ');
+ const solBranch=b=>`<p><b>SCCR (sweep 1):</b> ${b.comps.filter(c=>c.sc&&c.ev).map(c=>`${c.name} <b>${scpVal(c)}</b>${c.kind==='combo'&&!c.combo.valid?' <i>(combination marking does not apply – installed '+c.combo.cls+' '+c.combo.amp+' A vs required '+c.combo.mcls+' ≤ '+c.combo.maxA+' A → default 5)</i>':c.marked==null?' <i>(default)</i>':''}`).join('; ')} → lowest = <b>${scpKa(b.sccr)}</b> (${nm(b.limSC)}).</p><p><b>Interrupting rating (sweep 2):</b> ${b.comps.filter(c=>c.ir!=null).map(c=>`${c.name} ${c.ir} kA`).join('; ')} → <b>${scpKa(b.ir)}</b>.</p>`;
+ const solFeeder=()=>{const F=P.feeder;return `<p><b>Feeder SCCR:</b> ${F.comps.filter(c=>c.sc&&c.ev).map(c=>`${c.name} <b>${scpVal(c)}</b>${c.marked==null?' <i>(default)</i>':''}`).join('; ')} → <b>${scpKa(F.sccr)}</b> (${nm(F.limSC)}).</p><p><b>Feeder interrupting rating:</b> ${F.comps.filter(c=>c.ir!=null).map(c=>`${c.name} ${c.ir} kA`).join('; ')} → <b>${scpKa(F.ir)}</b>.</p>`};
+ const solPanel=()=>`<p><b>Panel SCCR = lowest of everything:</b> feeder ${P.feeder.sccr}/${P.feeder.ir} kA; branches ${P.branches.map(b=>b.sccr+'/'+b.ir).join(', ')} kA (SCCR/interrupting) → <b>${scpKa(P.panel)}</b>.</p><p>Limited by: ${P.lim.join('; ')}.</p><p>${P.panel>=P.avail?'✓ Suitable':'✗ Not suitable'}: panel SCCR ${P.panel} kA ${P.panel>=P.avail?'≥':'&lt;'} available ${P.avail} kA.</p>`;
+ const expected=()=>{const e={fsc:P.feeder.sccr,fir:P.feeder.ir,panel:P.panel,ok:P.suitable?'yes':'no'};P.branches.forEach((b,i)=>{e['b'+i+'sc']=b.sccr;e['b'+i+'ir']=b.ir});return e};
+ const getAns=id=>{const s=m.querySelector(`[data-s="${id}"]`);if(!s)return '';if(s.value==='other'){const o=m.querySelector(`[data-o="${id}"]`);return o.value}return s.value};
+ const paintScore=()=>{const e=$('#scpScore',m);if(e)e.textContent=st.n?`Perfect problems: ${st.ok} / ${st.n}`:'No problems checked yet'};
+ const check=()=>{
+  const E=expected();let good=0,all=0;
+  Object.keys(E).forEach(id=>{const box=m.querySelector(`.kf[data-f="${id}"]`),a=getAns(id);all++;
+   const ok=id==='ok'?a===E[id]:(a!==''&&Math.abs(+a-E[id])<0.0051);
+   box.classList.toggle('ok',ok&&a!=='');box.classList.toggle('bad',!ok);box.querySelector('.kr').textContent=a===''?'Not answered':ok?'✓ Correct':'✗ Try again';if(ok)good++});
+  if(!checked){checked=true;st.n++;if(good===all)st.ok++;store.set('ul508a.scp',st)}
+  paintScore();toast(good+' of '+all+' correct');return good===all};
+ m.onchange=e=>{const t=e.target;
+  if(t.id==='scpNb'){st.nb=+t.value;store.set('ul508a.scp',st);return}
+  if(t.id==='scpDf'){st.diff=t.value;store.set('ul508a.scp',st);return}
+  if(t.dataset.s){const o=m.querySelector(`[data-o="${t.dataset.s}"]`);if(o){o.hidden=t.value!=='other';if(t.value==='other')o.focus()}}};
+ m.onclick=e=>{const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a;
+  if(a==='new'){st.seed=Math.floor(Math.random()*90000)+10000;st.nb=+$('#scpNb',m).value;st.diff=$('#scpDf',m).value;store.set('ul508a.scp',st);build();window.scrollTo(0,0)}
+  else if(a==='check')check();
+  else if(a==='sol'){sol=!sol;m.querySelectorAll('.scp-sol').forEach(x=>x.hidden=!sol)}};
+ build()}
+
+const VIEWS={parts:['Exam Parts',viewParts],part1:['Part 1',()=>viewPart(1)],part2:['Part 2',()=>viewPart(2)],part3:['Part 3',()=>viewPart(3)],part4:['Part 4',()=>viewPart(4)],study:['All Questions',viewStudy],power:['Power Transformers',()=>viewSection('power')],control:['Control Transformers',()=>viewSection('control')],sccr:['SCCR',()=>viewSection('sccr')],quiz:['Quiz',viewQuiz],sccrp:['SCCR Practice',viewSccrPractice],sim:['Simulators',viewSim],phasor:['3-Phase Phasors',viewPhasor],ref:['Reference',viewRef]};
 function go(v,sub){if(sub){simTab=sub;store.set('ul508a.sim',sub)}if(stopFn){stopFn();stopFn=null}location.hash=v;render()}
 function render(){
  const v=(location.hash||'#parts').slice(1);const cur=VIEWS[v]?v:'parts';
  const hl=/^part[1-4]$/.test(cur)?'parts':cur;
- $('#main').onclick=null;
+ $('#main').onclick=null; $('#main').onchange=null;
  $('#nav').innerHTML=Object.entries(VIEWS).filter(([k])=>!/^part[1-4]$/.test(k)).map(([k,x])=>`<button data-v="${k}" class="${k===hl?'on':''}">${x[0]}</button>`).join('');
  if(stopFn){stopFn();stopFn=null}
  VIEWS[cur][1]();window.scrollTo(0,0)}
