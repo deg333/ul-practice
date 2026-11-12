@@ -140,6 +140,7 @@ textarea.paper{font:15px/20px ui-monospace,Menlo,Consolas,monospace;padding:0 6p
 .scp-in{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}.kf label{display:block;font-size:.8rem;color:var(--mut);margin-bottom:3px}.kf select,.kf input{width:100%;font-size:16px;box-sizing:border-box}.kf input{margin-top:6px}.kf .kr{display:block;font-size:.8rem;min-height:1.1em;margin-top:2px;color:var(--mut)}
 .kf.ok select,.kf.ok input{border-color:var(--ok);box-shadow:0 0 0 2px var(--okbg)}.kf.ok .kr{color:var(--ok);font-weight:600}.kf.bad select,.kf.bad input{border-color:var(--bad);box-shadow:0 0 0 2px var(--badbg)}.kf.bad .kr{color:var(--bad);font-weight:600}
 .scp-sol{margin-top:10px;padding:8px 10px;border-left:4px solid var(--ok);background:var(--okbg);border-radius:0 8px 8px 0;font-size:.9rem}.scp-sol[hidden]{display:none}.scp-sol p{margin:4px 0}
+.scp-box{margin-top:10px;padding:10px 12px;border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:0 8px 8px 0;background:var(--acc2);font-size:.92rem}.scp-box[hidden]{display:none}.scp-box p{margin:6px 0}.scp-eq{display:inline-block;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:2px 10px;font-weight:700}.sok{color:var(--ok);font-weight:700}.sbad{color:var(--bad);font-weight:700}
 .scp-bar{position:sticky;bottom:0;z-index:4;display:flex;gap:8px;padding:8px;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 -4px 14px rgba(0,0,0,.12)}.scp-bar .btn{flex:1;min-height:44px}
 @media(max-width:700px){.scp-grid{grid-template-columns:1fr}.scp-in{grid-template-columns:1fr 1fr;gap:8px}.scp-ctl .btn{flex:1 1 40%;min-height:44px}.scp-t{font-size:.82rem}.scp-head h2{font-size:1.15rem}}
 
@@ -2408,7 +2409,13 @@ function viewSccrPractice(){
    <div class="scp-in">${kaField('b'+i+'sc','Branch '+b.num+' SCCR')}${kaField('b'+i+'ir','Branch '+b.num+' interrupting rating')}</div><div class="scp-sol" hidden>${solBranch(b)}</div></div>`).join('')}</div>
   <div class="card scp-final"><h3 style="margin:0 0 8px">Panel result</h3><div class="scp-in">${kaField('panel','Panel SCCR')}
    <div class="kf" data-f="ok"><label for="s_ok">Suitable for ${P.avail} kA available?</label><select id="s_ok" data-s="ok"><option value="">Select…</option><option value="yes">Yes – SCCR ≥ available</option><option value="no">No – SCCR too low</option></select><span class="kr" aria-live="polite"></span></div></div>
-   <div class="scp-sol" hidden>${solPanel()}</div></div>
+   <div class="row" style="margin-top:12px;gap:8px"><button class="btn" data-a="sum">Summary of my values</button><button class="btn" data-a="hint">Hint: the two rules</button></div>
+   <div id="scpSum" class="scp-box" hidden></div>
+   <div id="scpHint" class="scp-box" hidden><p><b>Rule 1 – branch circuit components:</b> &nbsp;<span class="scp-eq">SCCR<sub>component</sub> ≥ I<sub>p</sub></span></p>
+    <p>Every power-circuit component in a branch must be able to withstand the current that actually reaches it. With a <b>current-limiting device</b> (CLD) in the feeder, that current is the device’s <b>peak let-through, I<sub>p</sub></b> (Table SB4.2), which is far lower than the available fault current. Use each component’s marked SCCR, or its SB4.1 default if unmarked (sweep 1). Without a CLD, I<sub>p</sub> is simply the fault current the panel must be rated for, so the component SCCR must be at least the panel SCCR.</p>
+    <p><b>Rule 2 – branch and feeder protective devices:</b> &nbsp;<span class="scp-eq">IR<sub>device</sub> ≥ SCCR<sub>panel</sub></span></p>
+    <p>Every branch and feeder overcurrent device (fuse or circuit breaker) must have an <b>interrupting rating</b> at least equal to the panel SCCR (sweep 2). A device can’t safely clear a fault larger than its interrupting rating, so the lowest interrupting rating caps the panel.</p>
+    <p><b>On this page</b> (no current-limiting credit): the panel SCCR is the <b>lowest</b> of all component SCCRs (rule 1) and all interrupting ratings (rule 2), in the feeder and in every branch. Find the weakest link in each branch first, then the feeder, then take the minimum. Then the panel is suitable only if that minimum is ≥ the available fault current.</p></div></div>
   <div class="scp-bar"><button class="btn pri" data-a="check">Check answers</button><button class="btn" data-a="sol">Solution</button><button class="btn" data-a="new">New</button></div>`;
   paintScore()};
  const nm=cs=>cs.map(c=>c.name).join(' / ');
@@ -2418,6 +2425,14 @@ function viewSccrPractice(){
  const expected=()=>{const e={fsc:P.feeder.sccr,fir:P.feeder.ir,panel:P.panel,ok:P.suitable?'yes':'no'};P.branches.forEach((b,i)=>{e['b'+i+'sc']=b.sccr;e['b'+i+'ir']=b.ir});return e};
  const getAns=id=>{const s=m.querySelector(`[data-s="${id}"]`);if(!s)return '';if(s.value==='other'){const o=m.querySelector(`[data-o="${id}"]`);return o.value}return s.value};
  const paintScore=()=>{const e=$('#scpScore',m);if(e)e.textContent=st.n?`Perfect problems: ${st.ok} / ${st.n}`:'No problems checked yet'};
+ const summary=()=>{
+  const E=expected(),cell=id=>{const a=getAns(id);if(a==='')return '<td class="mk none">—</td>';const ok=Math.abs(+a-E[id])<0.0051;return `<td>${fmt(+a,2)} kA${checked?(ok?' <span class="sok">✓</span>':' <span class="sbad">✗</span>'):''}</td>`};
+  const rows=[['Feeder','fsc','fir']].concat(P.branches.map((b,i)=>['Branch '+b.num+' · '+b.title,'b'+i+'sc','b'+i+'ir']));
+  const vals=[];rows.forEach(r=>[[r[1],r[0]+' SCCR'],[r[2],r[0]+' interrupting rating']].forEach(([id,lab])=>{const a=getAns(id);if(a!=='')vals.push([+a,lab])}));
+  const miss=rows.length*2-vals.length,low=vals.length?vals.reduce((a,b)=>b[0]<a[0]?b:a):null,pa=getAns('panel');
+  return `<div class="tbl"><table class="scp-t"><tr><th>Part</th><th>SCCR</th><th>Interrupting rating</th></tr>${rows.map(r=>`<tr><td>${r[0]}</td>${cell(r[1])}${cell(r[2])}</tr>`).join('')}<tr><td><b>Panel SCCR</b></td>${cell('panel')}<td></td></tr></table></div>
+  <p style="margin:8px 0 0">${low?`Lowest value you chose: <b>${fmt(low[0],2)} kA</b> (${low[1]}).`:'You have not chosen any values yet.'}${miss?` <span class="note">${miss} of ${rows.length*2} still unanswered.</span>`:''}</p>
+  ${low&&pa!==''?`<p style="margin:4px 0 0">${Math.abs(+pa-low[0])<0.0051?'✓ Your panel SCCR equals your lowest value.':+pa>low[0]?'⚠ Your panel SCCR ('+fmt(+pa,2)+' kA) is higher than your lowest chosen value ('+fmt(low[0],2)+' kA). The panel can’t be rated above its weakest part or device.':'Your panel SCCR ('+fmt(+pa,2)+' kA) is below your lowest chosen value ('+fmt(low[0],2)+' kA) – it should equal the lowest value.'}</p>`:''}`};
  const check=()=>{
   const E=expected();let good=0,all=0;
   Object.keys(E).forEach(id=>{const box=m.querySelector(`.kf[data-f="${id}"]`),a=getAns(id);all++;
@@ -2432,7 +2447,9 @@ function viewSccrPractice(){
  m.onclick=e=>{const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a;
   if(a==='new'){st.seed=Math.floor(Math.random()*90000)+10000;st.nb=+$('#scpNb',m).value;st.diff=$('#scpDf',m).value;store.set('ul508a.scp',st);build();window.scrollTo(0,0)}
   else if(a==='check')check();
-  else if(a==='sol'){sol=!sol;m.querySelectorAll('.scp-sol').forEach(x=>x.hidden=!sol)}};
+  else if(a==='sol'){sol=!sol;m.querySelectorAll('.scp-sol').forEach(x=>x.hidden=!sol)}
+  else if(a==='hint'){const h=$('#scpHint',m);h.hidden=!h.hidden}
+  else if(a==='sum'){const bx=$('#scpSum',m);if(!bx.hidden){bx.hidden=true;return}bx.innerHTML=summary();bx.hidden=false}};
  build()}
 
 const VIEWS={parts:['Exam Parts',viewParts],part1:['Part 1',()=>viewPart(1)],part2:['Part 2',()=>viewPart(2)],part3:['Part 3',()=>viewPart(3)],part4:['Part 4',()=>viewPart(4)],study:['All Questions',viewStudy],power:['Power Transformers',()=>viewSection('power')],control:['Control Transformers',()=>viewSection('control')],sccr:['SCCR',()=>viewSection('sccr')],quiz:['Quiz',viewQuiz],sccrp:['SCCR Practice',viewSccrPractice],sim:['Simulators',viewSim],phasor:['3-Phase Phasors',viewPhasor],ref:['Reference',viewRef]};
